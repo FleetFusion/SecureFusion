@@ -1,3 +1,7 @@
+<p align="left">
+  <img src="assets/logo.png" alt="SecureFusion" width="420" />
+</p>
+
 # SecureFusion
 
 **An open industry standard for tamper-evident video evidence in commercial fleets.**
