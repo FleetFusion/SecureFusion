@@ -40,7 +40,7 @@ import { RouterLink } from '@angular/router';
       >
         <div class="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
           <img
-            src="logo.png"
+            src="logo-light.png"
             alt="SecureFusion logo"
             class="h-12 sm:h-16 w-auto mb-8"
             width="688"
@@ -182,28 +182,28 @@ import { RouterLink } from '@angular/router';
         class="bg-white py-16 sm:py-24"
         aria-labelledby="why-heading"
       >
-        <div class="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
+        <div class="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
           <h2
             id="why-heading"
             class="text-3xl font-semibold text-brand-navy mb-8"
           >
             Why it exists
           </h2>
-          <p class="text-lg text-slate-700 leading-relaxed">
+          <p class="text-lg text-slate-700 leading-relaxed max-w-3xl">
             Video from commercial vehicles is increasingly the deciding
             factor in insurance claims, regulatory schemes like DVSA Earned
             Recognition, driver coaching decisions that affect livelihoods,
             civil and criminal proceedings, and public-interest
             investigations after collisions and near-misses.
           </p>
-          <p class="text-lg text-slate-700 leading-relaxed mt-6">
+          <p class="text-lg text-slate-700 leading-relaxed mt-6 max-w-3xl">
             Today the trustworthiness of that video rests entirely on the
             platform hosting it. There is no neutral way for an outside
             party to confirm a clip has not been altered. SecureFusion
             fixes that — by moving the trust anchor from "the platform
             says so" to "the public blockchain confirms it."
           </p>
-          <p class="text-lg text-slate-700 leading-relaxed mt-6">
+          <p class="text-lg text-slate-700 leading-relaxed mt-6 max-w-3xl">
             The standard is open. Any telematics provider, camera
             manufacturer, fleet platform, or insurer can implement it.
           </p>

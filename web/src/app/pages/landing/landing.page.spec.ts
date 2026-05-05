@@ -93,6 +93,6 @@ describe('LandingPage', () => {
     const img = fixture.nativeElement.querySelector('img') as HTMLImageElement;
     expect(img).toBeTruthy();
     expect(img.alt).toContain('SecureFusion');
-    expect(img.getAttribute('src')).toBe('logo.png');
+    expect(img.getAttribute('src')).toBe('logo-light.png');
   });
 });

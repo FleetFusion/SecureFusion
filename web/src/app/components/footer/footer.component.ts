@@ -5,7 +5,7 @@ import { Component } from '@angular/core';
  *
  * Light-grey strip below the page content with:
  * - Mono SemVer + SPDX line on the left.
- * - "No upload" reassurance + spec / GitHub / threat-model links on the right.
+ * - "No upload" reassurance + spec / GitHub links on the right.
  *
  * The "no upload" copy stays — it's the trust message the verifier hangs
  * on, and the spec asserts on it. Visual styling per the polish pass:
@@ -41,14 +41,6 @@ import { Component } from '@angular/core';
           class="text-slate-600 hover:text-brand-navy transition-colors"
         >
           GitHub
-        </a>
-        <a
-          href="https://github.com/FleetFusion/SecureFusion/blob/main/docs/threat-model.md"
-          target="_blank"
-          rel="noopener noreferrer"
-          class="text-slate-600 hover:text-brand-navy transition-colors"
-        >
-          Threat model
         </a>
       </div>
     </div>
