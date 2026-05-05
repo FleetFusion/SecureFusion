@@ -124,7 +124,12 @@ jobs:
           java-version: '17'
       - name: Maven compile + run main (asserts bundleHash equality vs test-vectors.json)
         working-directory: samples/java
-        run: mvn -B -ntp -f pom.xml compile exec:java -Dexec.mainClass=SecureFusionAnchor
+        # Quoting -D… is required so PowerShell on windows-latest doesn't split
+        # the token at the dot — pwsh's "Windows" arg-passing mode otherwise
+        # turns -Dexec.mainClass=… into two args and Maven reads the second as
+        # a (nonexistent) lifecycle phase. The single arg is portable across
+        # bash and pwsh.
+        run: mvn -B -ntp -f pom.xml compile exec:java "-Dexec.mainClass=SecureFusionAnchor"
 
   web-build:
     name: Verifier SPA (Node ${{ matrix.node-version }} / ${{ matrix.os }})
