@@ -15,7 +15,7 @@
 
 ## What this is
 
-SecureFusion is an open standard that lets anyone — insurer, lawyer, regulator, journalist, family member — independently verify that a video captured by a vehicle camera has not been modified since it was first ingested into a fleet platform.
+SecureFusion is an open standard that lets anyone (insurer, lawyer, regulator, journalist, family member) independently verify that a video captured by a vehicle camera has not been modified since it was first ingested into a fleet platform.
 
 It does this by hashing every video on ingest and anchoring those hashes to public blockchains. Compliant platforms display a verification badge in their video player; a free public site lets anyone drag in a video file and check it for themselves, without needing to trust the platform that produced it.
 
@@ -23,15 +23,15 @@ The standard is open. Any telematics provider, camera manufacturer, fleet platfo
 
 ## Public Verifier (securefusion.org/verify)
 
-The public verifier is a browser-only Angular SPA that lets anyone drag in a SecureFusion-anchored video file and check it against the public ledgers — no upload, no telemetry, no FleetFusion API. It produces a three-tier result: **Hash on XRPL** (instant), **Signed by platform key** (Ed25519), **Bitcoin-attested** (via OpenTimestamps).
+The public verifier is a browser-only Angular SPA that lets anyone drag in a SecureFusion-anchored video file and check it against the public ledgers, with no upload, no telemetry, and no FleetFusion API. It produces a three-tier result: **Hash on XRPL** (instant), **Signed by platform key** (Ed25519), **Bitcoin-attested** (via OpenTimestamps).
 
-The verifier is the trust tool for this standard: *audit me — this is open source — every byte hashed*. The full source is in [`web/`](web/), the architecture is described in [spec/SPEC.md §10.2](spec/SPEC.md), and the threat model is in [spec/threat-model.md](spec/threat-model.md). Reproducible builds, Subresource Integrity hashes, a strict Content-Security-Policy allowlist, and a self-hosting path mean nobody — including FleetFusion — has to be trusted blindly.
+The verifier is the trust tool for this standard: *audit me, this is open source, every byte hashed*. The full source is in [`web/`](web/), the architecture is described in [spec/SPEC.md §10.2](spec/SPEC.md), and the threat model is in [spec/threat-model.md](spec/threat-model.md). Reproducible builds, Subresource Integrity hashes, a strict Content-Security-Policy allowlist, and a self-hosting path mean nobody, including FleetFusion, has to be trusted blindly.
 
 Hosting is via Azure Static Web Apps; deployment is automated by [`.github/workflows/azure-static-web-apps.yml`](.github/workflows/azure-static-web-apps.yml) and requires the GitHub secret `AZURE_STATIC_WEB_APPS_API_TOKEN` to be configured on the standalone public repo.
 
 ## Player overlay badges
 
-Two ready-made badges sit in [`assets/badges/`](assets/badges/) for use in video players that display SecureFusion-anchored footage. Pick one and overlay it on the player frame — typically top-right, with a recommended overlay width of ~120 px on a 1920×1080 player (scale proportionally; the source PNGs are 1605×372 with transparent backgrounds).
+Two ready-made badges sit in [`assets/badges/`](assets/badges/) for use in video players that display SecureFusion-anchored footage. Pick one and overlay it on the player frame, typically top-right, with a recommended overlay width of ~120 px on a 1920×1080 player (scale proportionally; the source PNGs are 1605×372 with transparent backgrounds).
 
 <table>
   <thead>
@@ -63,7 +63,7 @@ Video from commercial vehicles is increasingly the deciding factor in:
 - Civil and criminal proceedings involving road incidents
 - Public-interest investigations after collisions and near-misses
 
-Today the trustworthiness of that video rests entirely on the platform hosting it. There is no neutral way for an outside party to confirm a clip has not been altered. SecureFusion fixes that — by moving the trust anchor from "the platform says so" to "the public blockchain confirms it."
+Today the trustworthiness of that video rests entirely on the platform hosting it. There is no neutral way for an outside party to confirm a clip has not been altered. SecureFusion fixes that by moving the trust anchor from "the platform says so" to "the public blockchain confirms it."
 
 ## How it works
 
@@ -90,11 +90,11 @@ Today the trustworthiness of that video rests entirely on the platform hosting i
                  a file in 5 seconds
 ```
 
-1. **Hash on ingest** — SHA-256 over the raw bytes of every video, before any transcoding or processing happens.
-2. **Build the manifest** — a structured JSON record covering the event (vehicle, time, geo, channel hashes, codec, optional notes), itself hashed to produce the *bundle hash*.
-3. **Anchor on chain** — bundle hash plus the full event record written to the **XRP Ledger** within seconds; the same hashes batched hourly into a Merkle tree and anchored to **Bitcoin** via OpenTimestamps for long-term durability.
-4. **Display proof** — compliant video players show a SecureFusion badge linking to the on-chain transaction.
-5. **Verify publicly** — anyone can drop a video file into the public verifier; the file is hashed locally in their browser, and the hash is checked against the public ledgers.
+1. **Hash on ingest.** SHA-256 over the raw bytes of every video, before any transcoding or processing happens.
+2. **Build the manifest.** A structured JSON record covering the event (vehicle, time, geo, channel hashes, codec, optional notes), itself hashed to produce the *bundle hash*.
+3. **Anchor on chain.** Bundle hash plus the full event record written to the **XRP Ledger** within seconds; the same hashes batched hourly into a Merkle tree and anchored to **Bitcoin** via OpenTimestamps for long-term durability.
+4. **Display proof.** Compliant video players show a SecureFusion badge linking to the on-chain transaction.
+5. **Verify publicly.** Anyone can drop a video file into the public verifier; the file is hashed locally in their browser, and the hash is checked against the public ledgers.
 
 ## Repository layout
 
@@ -161,12 +161,12 @@ Please [open an issue](../../issues) or read [CONTRIBUTING.md](CONTRIBUTING.md).
 ## Quick links
 
 - [Full specification (v1.0)](spec/SPEC.md)
-- [Public summary](docs/public-summary.md) — non-technical introduction
+- [Public summary](docs/public-summary.md): non-technical introduction
 - [FAQ](docs/faq.md)
 - [Governance](GOVERNANCE.md)
-- [Public verifier SPA (browser)](web/README.md) — securefusion.org/verify
+- [Public verifier SPA (browser)](web/README.md): securefusion.org/verify
 - [Reference verifier (Node.js)](reference-verifier/README.md)
-- [Sample implementations](samples/README.md) — C#, Python, Java, Go, TypeScript
+- [Sample implementations](samples/README.md): C#, Python, Java, Go, TypeScript
 - [Conformance tests](conformance/README.md)
 
 ## Licensing
@@ -180,7 +180,7 @@ This split is deliberate: the standard should be free for anyone to implement; t
 
 ## What this isn't
 
-SecureFusion is not a product, a platform, or a blockchain. It does not collect anyone's video, run any servers, or hold anyone's data. It is a specification — a set of agreed conventions that, if followed, make video evidence verifiable by anyone.
+SecureFusion is not a product, a platform, or a blockchain. It does not collect anyone's video, run any servers, or hold anyone's data. It is a specification: a set of agreed conventions that, if followed, make video evidence verifiable by anyone.
 
 The first commercial implementation is being built by FleetFusion. We hope it won't be the last.
 

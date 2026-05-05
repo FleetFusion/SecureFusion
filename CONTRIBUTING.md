@@ -1,6 +1,6 @@
 # Contributing to SecureFusion
 
-Thank you for your interest in SecureFusion. The standard improves through review, criticism, and implementation experience — all contributions are welcome.
+Thank you for your interest in SecureFusion. The standard improves through review, criticism, and implementation experience, and all contributions are welcome.
 
 ## Ways to contribute
 
@@ -40,9 +40,9 @@ For issues touching the specification, please reference the relevant section num
 
 For changes to:
 
-- **The specification** — please file an issue first to discuss before submitting a PR. Specification changes affect every implementer and need broader review.
-- **Schemas, examples, and documentation** — direct PRs are welcome.
-- **The reference verifier** — direct PRs welcome. Please add tests and ensure existing tests pass.
+- **The specification.** Please file an issue first to discuss before submitting a PR. Specification changes affect every implementer and need broader review.
+- **Schemas, examples, and documentation.** Direct PRs are welcome.
+- **The reference verifier.** Direct PRs welcome. Please add tests and ensure existing tests pass.
 
 All contributions to the specification will be made available under [CC BY 4.0](LICENSE-SPEC). All code contributions will be made available under [Apache 2.0](LICENSE-CODE). By submitting a contribution, you confirm that you have the right to make this contribution under these terms.
 
@@ -67,11 +67,11 @@ The maintainers reserve the right to remove comments, close issues, and ban cont
 
 Material changes to the specification go through the following stages:
 
-1. **Issue** — proposed change is discussed in a GitHub issue. Anyone can open one.
-2. **Draft PR** — once direction is agreed, a draft PR is opened. Specification version is bumped (e.g. `v1.0` → `v1.1-draft`).
-3. **Review period** — minimum two weeks for community review.
-4. **Adoption** — if no blocking objections from maintainers, the change is merged and the version is finalised.
-5. **Backwards compatibility** — every accepted change is reviewed for impact on existing anchors. Breaking changes require a major version bump (e.g. `SF1` → `SF2` memo prefix).
+1. **Issue.** The proposed change is discussed in a GitHub issue. Anyone can open one.
+2. **Draft PR.** Once direction is agreed, a draft PR is opened. Specification version is bumped (e.g. `v1.0` → `v1.1-draft`).
+3. **Review period.** Minimum two weeks for community review.
+4. **Adoption.** If no blocking objections from maintainers, the change is merged and the version is finalised.
+5. **Backwards compatibility.** Every accepted change is reviewed for impact on existing anchors. Breaking changes require a major version bump (e.g. `SF1` → `SF2` memo prefix).
 
 The full process is documented in [GOVERNANCE.md](GOVERNANCE.md).
 

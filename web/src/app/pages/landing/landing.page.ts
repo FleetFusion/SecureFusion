@@ -55,7 +55,7 @@ import { RouterLink } from '@angular/router';
           <p class="mt-6 text-lg text-white/80 max-w-2xl">
             An open industry standard for tamper-evident video evidence in
             commercial fleets. Every clip is hashed on ingest, anchored on
-            public blockchains, and verifiable by anyone — without trusting
+            public blockchains, and verifiable by anyone, without trusting
             the platform that produced it.
           </p>
           <div class="flex flex-col sm:flex-row gap-4 mt-10">
@@ -142,8 +142,8 @@ import { RouterLink } from '@angular/router';
               <p class="text-sm text-slate-600 mt-2">
                 Hashes are written to the XRP Ledger within seconds and
                 batched hourly into Bitcoin via OpenTimestamps for
-                long-term durability — neutral public ledgers, no trusted
-                intermediary.
+                long-term durability. Both are neutral public ledgers
+                with no trusted intermediary.
               </p>
             </div>
             <div
@@ -169,7 +169,7 @@ import { RouterLink } from '@angular/router';
               </h3>
               <p class="text-sm text-slate-600 mt-2">
                 Anyone can drop a video file into the public verifier and
-                confirm — independently of the host platform — that the
+                confirm, independently of the host platform, that the
                 file has not been altered since ingest.
               </p>
             </div>
@@ -200,7 +200,7 @@ import { RouterLink } from '@angular/router';
             Today the trustworthiness of that video rests entirely on the
             platform hosting it. There is no neutral way for an outside
             party to confirm a clip has not been altered. SecureFusion
-            fixes that — by moving the trust anchor from "the platform
+            fixes that by moving the trust anchor from "the platform
             says so" to "the public blockchain confirms it."
           </p>
           <p class="text-lg text-slate-700 leading-relaxed mt-6 max-w-3xl">
@@ -239,27 +239,27 @@ import { RouterLink } from '@angular/router';
             class="list-decimal space-y-3 pl-5 text-base text-slate-700 mt-8 max-w-3xl"
           >
             <li>
-              <strong class="text-brand-navy">Hash on ingest</strong> —
+              <strong class="text-brand-navy">Hash on ingest.</strong>
               SHA-256 over the raw bytes, before any transcoding.
             </li>
             <li>
-              <strong class="text-brand-navy">Build the manifest</strong> —
-              a canonical JSON record (vehicle, time, channel hashes,
+              <strong class="text-brand-navy">Build the manifest.</strong>
+              A canonical JSON record (vehicle, time, channel hashes,
               codec) hashed to produce the <em>bundle hash</em>.
             </li>
             <li>
-              <strong class="text-brand-navy">Anchor on chain</strong> —
-              bundle + event written to XRPL within seconds; batched
+              <strong class="text-brand-navy">Anchor on chain.</strong>
+              Bundle and event written to XRPL within seconds, batched
               hourly into Bitcoin via OpenTimestamps.
             </li>
             <li>
-              <strong class="text-brand-navy">Display proof</strong> —
-              compliant video players show a SecureFusion badge linking
+              <strong class="text-brand-navy">Display proof.</strong>
+              Compliant video players show a SecureFusion badge linking
               to the on-chain transaction.
             </li>
             <li>
-              <strong class="text-brand-navy">Verify publicly</strong> —
-              anyone can drop a video file into the public verifier; the
+              <strong class="text-brand-navy">Verify publicly.</strong>
+              Anyone can drop a video file into the public verifier; the
               file is hashed locally, and the hash is checked against the
               public ledgers.
             </li>

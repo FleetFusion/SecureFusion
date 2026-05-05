@@ -135,7 +135,7 @@ import type { AnchorRef, VerificationResult } from '../../core/verifier-types';
         }
       } @else {
         <p class="text-sm text-gray-500">
-          No manifest available — Tier 1 verification did not match an anchor.
+          No manifest available. Tier 1 verification did not match an anchor.
         </p>
       }
     </section>

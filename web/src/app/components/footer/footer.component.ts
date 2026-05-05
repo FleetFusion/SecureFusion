@@ -23,7 +23,7 @@ import { Component } from '@angular/core';
       class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6 flex flex-col sm:flex-row justify-between items-center gap-2"
     >
       <span class="font-mono text-xs sm:text-sm">
-        SecureFusion v1.0.0 · Apache-2.0 / CC BY 4.0 — runs in your browser, no upload
+        SecureFusion v1.0.0 · Apache-2.0 / CC BY 4.0 · runs in your browser, no upload
       </span>
       <div class="flex items-center gap-4">
         <a

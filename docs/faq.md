@@ -1,4 +1,4 @@
-# SecureFusion — Frequently Asked Questions
+# SecureFusion: Frequently Asked Questions
 
 ## General
 
@@ -8,11 +8,11 @@ An open standard that lets anyone verify a video captured by a vehicle camera ha
 
 ### Who is it for?
 
-Insurance companies, regulators, fleet operators, drivers, lawyers, journalists — anyone who has reason to look at fleet video and wants to confirm it is genuine. It is also for telematics platforms and camera vendors who want their video evidence to carry weight in disputes regardless of which fleet operator runs them.
+Insurance companies, regulators, fleet operators, drivers, lawyers, journalists: anyone who has reason to look at fleet video and wants to confirm it is genuine. It is also for telematics platforms and camera vendors who want their video evidence to carry weight in disputes regardless of which fleet operator runs them.
 
 ### Is this a product?
 
-No. SecureFusion is a specification — a set of conventions that, if followed by a fleet platform, make their video evidence verifiable. The reference verifier and conformance tools are open source. The first commercial implementation is being built into FleetFusion's vehicle media pipeline.
+No. SecureFusion is a specification: a set of conventions that, if followed by a fleet platform, make their video evidence verifiable. The reference verifier and conformance tools are open source. The first commercial implementation is being built into FleetFusion's vehicle media pipeline.
 
 ### Why "open"?
 
@@ -22,7 +22,7 @@ Evidence integrity should not be the property of a single company. A blockchain 
 
 ### What's anchored on chain?
 
-A SHA-256 hash of the original video file (per channel), plus a structured record of the event (vehicle, time, location, channel hashes). The hash is what gives tamper-evidence; the event record provides context. Drivers and tenants are referenced pseudonymously — no personal data goes on chain.
+A SHA-256 hash of the original video file (per channel), plus a structured record of the event (vehicle, time, location, channel hashes). The hash is what gives tamper-evidence; the event record provides context. Drivers and tenants are referenced pseudonymously, so no personal data goes on chain.
 
 ### Why two blockchains?
 
@@ -52,7 +52,7 @@ The standard supports versioning so future SecureFusion versions can move to add
 
 ### How does someone verify a video?
 
-They drag the video file into the public verification site. The file is hashed locally in their browser (it never leaves their machine). The hash is checked against the public ledger. If it matches, they see the on-chain anchor details — when, by which platform, with what event metadata.
+They drag the video file into the public verification site. The file is hashed locally in their browser (it never leaves their machine). The hash is checked against the public ledger. If it matches, they see the on-chain anchor details: when, by which platform, with what event metadata.
 
 ### Do I need a SecureFusion account to verify?
 
@@ -69,7 +69,7 @@ Three possibilities, in order of likelihood:
 2. The file was never ingested through a SecureFusion-compliant platform.
 3. There is a bug in the verifier or implementation. File an issue.
 
-A failed verification is not by itself proof of fraud — it is proof that the file is no longer the file that was anchored.
+A failed verification is not by itself proof of fraud; it is proof that the file is no longer the file that was anchored.
 
 ## Privacy
 
@@ -83,13 +83,13 @@ They can see that a particular SecureFusion XRPL account anchored a certain numb
 
 ### What about GDPR?
 
-Personal data does not go on chain. Driver IDs, tenant IDs, and vehicle IDs on chain are pseudonymous identifiers — meaningless without the off-chain mapping table held by the implementing platform under normal data protection controls. A subject access request is fulfilled by the platform; the on-chain anchor is unaffected. Right-to-erasure applies to the off-chain personal data; the cryptographic hash on chain is not personal data.
+Personal data does not go on chain. Driver IDs, tenant IDs, and vehicle IDs on chain are pseudonymous identifiers, meaningless without the off-chain mapping table held by the implementing platform under normal data protection controls. A subject access request is fulfilled by the platform; the on-chain anchor is unaffected. Right-to-erasure applies to the off-chain personal data; the cryptographic hash on chain is not personal data.
 
 ## Adoption
 
 ### My telematics platform doesn't support SecureFusion. What can I do?
 
-Ask them to. The specification is open and the reference verifier is open source. Implementation is straightforward — most of the work is in the ingest pipeline, not in cryptography.
+Ask them to. The specification is open and the reference verifier is open source. Implementation is straightforward; most of the work is in the ingest pipeline, not in cryptography.
 
 ### I'm a camera manufacturer. How do I integrate?
 
@@ -101,13 +101,13 @@ Run the reference verifier against the file before accepting it as evidence. The
 
 ### I'm a regulator. How does this fit with frameworks like DVSA Earned Recognition?
 
-SecureFusion is a vendor-neutral evidence standard. It can sit underneath any compliance scheme that relies on dashcam or in-cab video. Adoption requires no change to the regulatory framework itself — only confidence that video tendered as evidence is genuine. We are happy to engage on conformance and assurance questions.
+SecureFusion is a vendor-neutral evidence standard. It can sit underneath any compliance scheme that relies on dashcam or in-cab video. Adoption requires no change to the regulatory framework itself, only confidence that video tendered as evidence is genuine. We are happy to engage on conformance and assurance questions.
 
 ## Governance and contribution
 
 ### Who runs the standard?
 
-During the bootstrapping phase, FleetFusion (as the originating implementer) acts as editorial maintainer. The intent is to graduate to a multi-party steering body — drawn from implementers, users, and independent stakeholders — once the standard has multiple implementations. See [GOVERNANCE.md](../GOVERNANCE.md).
+During the bootstrapping phase, FleetFusion (as the originating implementer) acts as editorial maintainer. The intent is to graduate to a multi-party steering body, drawn from implementers, users, and independent stakeholders, once the standard has multiple implementations. See [GOVERNANCE.md](../GOVERNANCE.md).
 
 ### How do I contribute?
 
@@ -115,7 +115,7 @@ See [CONTRIBUTING.md](../CONTRIBUTING.md). Implementation experience, security r
 
 ### How do I report a security issue?
 
-For non-sensitive issues, open a GitHub issue. For issues that should not be public until fixed, contact the maintainers privately — see [SECURITY.md](../SECURITY.md) (forthcoming).
+For non-sensitive issues, open a GitHub issue. For issues that should not be public until fixed, contact the maintainers privately; see [SECURITY.md](../SECURITY.md) (forthcoming).
 
 ### Can I use the SecureFusion name?
 

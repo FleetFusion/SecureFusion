@@ -2,7 +2,7 @@
 
 All notable changes to the SecureFusion specification, reference verifier, and supporting tooling are documented here.
 
-The specification version (e.g. `v1.0`) and the reference verifier version (e.g. `1.0.0`) move together during the v1 series. They may diverge in the future — the verifier can receive updates while the standard remains stable.
+The specification version (e.g. `v1.0`) and the reference verifier version (e.g. `1.0.0`) move together during the v1 series. They may diverge in the future, since the verifier can receive updates while the standard remains stable.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
@@ -13,14 +13,14 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Bitcoin direct-anchor policy thresholds (when to do per-batch direct vs OpenTimestamps only).
 - Dedicated security mailbox once the steering body forms.
 
-## [1.0.0] — 2026-05-04 (in development)
+## [1.0.0] - 2026-05-04 (in development)
 
 ### Added
-- Public verifier SPA at `securefusion.org/verify` — Angular standalone, browser-only, drag-drop or file picker, three-tier result (Hash on XRPL / Signed by platform key / Bitcoin-attested). The site also serves a project landing page at `securefusion.org/` introducing the open standard.
+- Public verifier SPA at `securefusion.org/verify`: Angular standalone, browser-only, drag-drop or file picker, three-tier result (Hash on XRPL / Signed by platform key / Bitcoin-attested). The site also serves a project landing page at `securefusion.org/` introducing the open standard.
 - `bitcoinProofMode` registry field with three modes: `xrpl-sf1ots` (default for FleetFusion), `https`, `none`. Adopters choose how their Bitcoin tier is exposed.
-- Reference verifier (`reference-verifier/`) — Node.js library for programmatic verification.
-- Multi-language sample anchor producers (C#, Java, Go, Python, TypeScript) — all produce identical bundleHashes against the conformance vectors.
-- Conformance vectors at `conformance/vectors/` — happy path + 5 tamper variants per memo set.
+- Reference verifier (`reference-verifier/`): Node.js library for programmatic verification.
+- Multi-language sample anchor producers (C#, Java, Go, Python, TypeScript), all producing identical bundleHashes against the conformance vectors.
+- Conformance vectors at `conformance/vectors/`: happy path plus 5 tamper variants per memo set.
 
 ### Changed
 - `ingestSource` field is now a single-value enum `"fleetfusion"` (was per-upstream-provider distinctions in earlier drafts).
@@ -28,25 +28,25 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - SF1.bundle source-code byte collapsed to single value `0x01 = FleetFusion`.
 
 ### Fixed
-- Underscore-key filter removed from canonicaliser (P0 from Codex review — was breaking tamper evidence).
+- Underscore-key filter removed from canonicaliser (P0 from Codex review; was breaking tamper evidence).
 - Verifier now schema-validates manifests + checks XRPL tx shell + memo format/case + cross-validates eventId.
 - C# sample csproj is valid XML.
 - Python sample is ASCII-only (was crashing on cp1252).
 - TypeScript sample is `tsc --noEmit` clean.
 
 ### Known limitations (v1)
-- Registry is shipped via git (no signed-fetch or transparency log yet — v2).
+- Registry is shipped via git (no signed-fetch or transparency log yet; planned for v2).
 - v1 verifiers reject `v != 1` manifests (forward-incompatible by design).
-- `https` mode trust degrades to "trust the issuer's HTTPS endpoint" — full trustlessness only with `xrpl-sf1ots`.
+- `https` mode trust degrades to "trust the issuer's HTTPS endpoint"; full trustlessness only with `xrpl-sf1ots`.
 
-## [1.0.0-rc] — 2026-05 (initial public release candidate)
+## [1.0.0-rc] - 2026-05 (initial public release candidate)
 
 ### Added
-- **Specification.** SecureFusion v1.0 (SF1) — complete and stable.
-- **XRP Ledger memo format** — three memos per anchor (`SF1.bundle`, `SF1.event`, `SF1.sig`).
+- **Specification.** SecureFusion v1.0 (SF1), complete and stable.
+- **XRP Ledger memo format**: three memos per anchor (`SF1.bundle`, `SF1.event`, `SF1.sig`).
 - **Canonical event manifest format** with RFC 8785 (JCS) compatible serialisation.
 - **JSON schemas** for event manifest and decoded bundle memo.
-- **Worked examples** — single-channel and four-channel manifests with published `bundleHash` test vectors.
+- **Worked examples**: single-channel and four-channel manifests with published `bundleHash` test vectors.
 - **Reference verifier** (Node.js, no third-party dependencies):
   - Canonical JSON serialisation
   - SHA-256 hashing (buffer and streaming file)
@@ -56,7 +56,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   - End-to-end `verifyManifest` and `verifyFile` APIs
   - CLI: `securefusion-verify`
   - Test suite (28 tests, all passing on Node 20 / 22)
-- **Sample anchor producers** in five languages — C# (.NET 8), Python, Java, Go, TypeScript. Each produces the canonical `bundleHash` matching the published test vectors.
+- **Sample anchor producers** in five languages: C# (.NET 8), Python, Java, Go, TypeScript. Each produces the canonical `bundleHash` matching the published test vectors.
 - **Threat model** documentation.
 - **Governance, contributing, and security policy** documents.
 - **GitHub issue templates** for spec issues, verifier bugs, and registry requests.

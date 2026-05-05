@@ -32,17 +32,17 @@ import { RouterLink } from '@angular/router';
         </p>
         <ol class="list-decimal space-y-1 pl-5">
           <li>
-            <strong>Hash on XRPL</strong> — the file's SHA-256 must
+            <strong>Hash on XRPL.</strong> The file's SHA-256 must
             appear inside an SF1.bundle Memo on the platform's XRPL
             account.
           </li>
           <li>
-            <strong>Signed by platform key</strong> — the SF1.sig Memo
+            <strong>Signed by platform key.</strong> The SF1.sig Memo
             verifies under the platform's published Ed25519 public key
             (bundled as a trust anchor).
           </li>
           <li>
-            <strong>Bitcoin-attested</strong> — the SF1.ots upgrade tx
+            <strong>Bitcoin-attested.</strong> The SF1.ots upgrade tx
             (a 4-memo follow-up) carries an OpenTimestamps proof that
             anchors the bundle into a Bitcoin block.
           </li>
@@ -69,8 +69,7 @@ import { RouterLink } from '@angular/router';
               rel="noopener noreferrer"
               class="text-ff-green hover:underline"
               >github.com/FleetFusion/SecureFusion</a
-            >
-            — Repository, issues, and pull requests.
+            >: repository, issues, and pull requests.
           </li>
           <li>
             <a
@@ -79,8 +78,7 @@ import { RouterLink } from '@angular/router';
               rel="noopener noreferrer"
               class="text-ff-green hover:underline"
               >SecureFusion v1 spec</a
-            >
-            — Memo layout, canonicalisation rules, registry shape.
+            >: memo layout, canonicalisation rules, registry shape.
           </li>
           <li>
             <a
@@ -89,8 +87,7 @@ import { RouterLink } from '@angular/router';
               rel="noopener noreferrer"
               class="text-ff-green hover:underline"
               >§4 Architecture</a
-            >
-            — Anchor/upgrade tx flows.
+            >: anchor and upgrade tx flows.
           </li>
         </ul>
       </section>

@@ -4,7 +4,7 @@ This document describes how decisions about the SecureFusion standard are made, 
 
 ## Principles
 
-1. **The standard belongs to the industry, not to any one company.** No single vendor — including FleetFusion, the originating implementer — should be able to dictate the standard's direction against the broader interest of implementers and users.
+1. **The standard belongs to the industry, not to any one company.** No single vendor (including FleetFusion, the originating implementer) should be able to dictate the standard's direction against the broader interest of implementers and users.
 2. **Decisions are made transparently and in public.** All standard-affecting discussion happens in GitHub issues, pull requests, and discussions. Private decisions are not binding on the standard.
 3. **Implementation experience outweighs theoretical preference.** A vendor who has shipped a working implementation has more weight in resolving an ambiguity than one who has not.
 4. **Backwards compatibility is preserved by default.** Existing on-chain anchors must remain verifiable indefinitely. Breaking changes require a major version increment.
@@ -23,10 +23,10 @@ SecureFusion is in its bootstrapping phase. During this period:
 
 Once SecureFusion has at least three independent implementations and active interest from non-vendor stakeholders, governance moves to a multi-party steering body with the following composition:
 
-- **Implementer seats** (telematics platforms, camera vendors, fleet platforms) — at least three, no more than 50% of total seats.
-- **User seats** (fleet operators, large user representatives) — at least two.
-- **Independent seats** (insurers, regulators, security researchers, road safety bodies) — at least two.
-- **Maintainer seat** — the active editor of the reference specification, ex officio.
+- **Implementer seats** (telematics platforms, camera vendors, fleet platforms): at least three, no more than 50% of total seats.
+- **User seats** (fleet operators, large user representatives): at least two.
+- **Independent seats** (insurers, regulators, security researchers, road safety bodies): at least two.
+- **Maintainer seat:** the active editor of the reference specification, ex officio.
 
 Seats are held by named individuals, not by their employers. If an individual changes employer, they retain their seat unless this creates an undue concentration (e.g. two seats moving to the same company).
 
@@ -106,7 +106,7 @@ If the standard reaches a scale where independent funding is appropriate (e.g. f
 
 ## Amendment
 
-This governance document may be amended through the same process as the specification — open discussion, pull request, review period, and steering body decision. Amendment proposals affecting decision-making power require a longer (four-week) review period.
+This governance document may be amended through the same process as the specification: open discussion, pull request, review period, and steering body decision. Amendment proposals affecting decision-making power require a longer (four-week) review period.
 
 ## Final note
 
