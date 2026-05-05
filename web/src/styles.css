@@ -1,3 +1,29 @@
+/* Self-hosted fonts — no Google Fonts dependency, no CSP change */
+@import '@fontsource/inter/400.css';
+@import '@fontsource/inter/500.css';
+@import '@fontsource/inter/600.css';
+@import '@fontsource/inter/700.css';
+@import '@fontsource/jetbrains-mono/400.css';
+@import '@fontsource/jetbrains-mono/500.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+:root {
+  color-scheme: light;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: theme('fontFamily.sans');
+}
+
+*:focus-visible {
+  outline: 2px solid theme('colors.brand.cyan');
+  outline-offset: 2px;
+  border-radius: 2px;
+}

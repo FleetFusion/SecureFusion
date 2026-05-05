@@ -8,60 +8,66 @@ import { SettingsPanelComponent } from '../settings/settings.component';
  *
  * - Brand wordmark on the left, links to `/` (the project landing page).
  * - Inline nav row with `Verify` (`/verify`) and `About` (`/about`); the
- *   active link gets `font-bold` via Angular's `RouterLinkActive`.
+ *   active link gets `font-bold text-brand-cyan` via Angular's `RouterLinkActive`.
  * - Settings cog (gear) on the right, opens the slide-over
  *   `<app-settings-panel>` (only meaningful on `/verify`, but kept on
  *   every route so the panel state persists across navigation).
  * - GitHub Octocat mark on the far right, links to the SecureFusion
  *   repo, opens in a new tab with `noopener noreferrer`.
  *
- * The brand colour palette is the FleetFusion `ff.green` family defined
- * in `tailwind.config.js`. Using `text-ff-green` keeps the SPA visually
- * aligned with the FleetFusion console without taking a dependency on
- * the console's full Lepton-X theme.
+ * Visual: navy `bg-brand-navy` strip with white text and cyan accents.
+ * The navy bar paints on the first frame, so a missing/blocked stylesheet
+ * is immediately visible (no styled navy = CSS didn't load).
+ *
+ * Responsive: at 320px the nav text labels stay visible but spacing
+ * tightens (gap-2 instead of gap-4). The header never overflows.
  */
 @Component({
   standalone: true,
   selector: 'app-header',
   imports: [RouterLink, RouterLinkActive, SettingsPanelComponent],
-  host: { class: 'block w-full border-b border-gray-200 bg-white' },
+  host: { class: 'block w-full bg-brand-navy text-white' },
   template: `
-    <div class="mx-auto flex max-w-5xl items-center justify-between gap-4 px-4 py-3">
+    <div
+      class="mx-auto flex max-w-7xl items-center justify-between gap-2 px-4 py-3 sm:gap-4 sm:px-6 lg:px-8"
+    >
       <a
         routerLink="/"
         class="flex items-center gap-2 font-semibold"
         aria-label="SecureFusion home"
       >
-        <span class="text-ff-green">SecureFusion</span>
+        <span class="font-bold text-base sm:text-lg tracking-tight">
+          <span class="text-white">Secure</span><span class="text-brand-cyan">Fusion</span>
+        </span>
       </a>
       <nav
-        class="flex items-center gap-4 text-sm text-gray-700"
+        class="flex items-center gap-3 text-sm sm:gap-4"
         aria-label="Primary"
       >
         <a
           routerLink="/verify"
-          routerLinkActive="font-bold text-ff-green"
+          routerLinkActive="font-bold text-brand-cyan"
           data-testid="nav-verify"
-          class="hover:text-black focus:outline-none focus:ring-2 focus:ring-ff-green focus:ring-offset-2 rounded"
+          class="text-white/80 hover:text-white transition-colors rounded"
         >
           Verify
         </a>
         <a
           routerLink="/about"
-          routerLinkActive="font-bold text-ff-green"
+          routerLinkActive="font-bold text-brand-cyan"
           data-testid="nav-about"
-          class="hover:text-black focus:outline-none focus:ring-2 focus:ring-ff-green focus:ring-offset-2 rounded"
+          class="text-white/80 hover:text-white transition-colors rounded"
         >
           About
         </a>
       </nav>
-      <div class="flex items-center gap-3">
+      <div class="flex items-center gap-2 sm:gap-3">
         <button
           #cogBtn
           type="button"
           aria-label="Settings"
           data-testid="settings-cog"
-          class="rounded-md p-1 text-gray-700 hover:bg-gray-100 hover:text-black focus:outline-none focus:ring-2 focus:ring-ff-green focus:ring-offset-2"
+          class="rounded-md p-1 text-white/80 hover:text-white transition-colors"
           (click)="toggle()"
         >
           <svg
@@ -83,7 +89,7 @@ import { SettingsPanelComponent } from '../settings/settings.component';
           target="_blank"
           rel="noopener noreferrer"
           aria-label="Source code on GitHub"
-          class="text-gray-700 hover:text-black"
+          class="text-white/80 hover:text-white transition-colors"
         >
           <svg
             viewBox="0 0 24 24"
