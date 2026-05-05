@@ -41,11 +41,11 @@ If you find an issue with a specific commercial implementation, please contact t
 
 See [spec/threat-model.md](spec/threat-model.md) for the standard's full threat model and known limitations. New attack categories or refinements to the model are particularly welcomed.
 
-## Public verifier (verify.fleetfusion.ai)
+## Public verifier (securefusion.org/verify)
 
 The public verifier SPA is part of this repository (`web/`) and is therefore in scope for this policy. A few implementation details that are useful to know when reviewing or reporting:
 
-- **Open source.** The full source is at `web/` in this repository (canonical mirror: github.com/FleetFusion/SecureFusion). What runs at verify.fleetfusion.ai is built from this code — see [`web/README.md`](web/README.md) for the reproducible build procedure.
+- **Open source.** The full source is at `web/` in this repository (canonical mirror: github.com/FleetFusion/SecureFusion). What runs at securefusion.org is built from this code — see [`web/README.md`](web/README.md) for the reproducible build procedure.
 - **Network allowlist via CSP.** The browser is only allowed to connect to a fixed set of hosts (XRPL public clusters and OpenTimestamps calendars), enforced by the `connect-src` directive in [`web/staticwebapp.config.json`](web/staticwebapp.config.json). Extending this allowlist requires a pull request and is reviewable in `git log`. The verifier cannot exfiltrate anything to a third party, even if the JavaScript were compromised.
 - **Trust anchors are git-tracked.** The list of public keys whose signatures the verifier accepts lives at `web/src/assets/trust-anchors/registry.json`. If you suspect tampering, run `git log web/src/assets/trust-anchors/` to see every change. Adding a trust anchor requires PR review and a maintainer countersign.
 - **No telemetry, no ads, no third-party JavaScript.** The verifier ships zero analytics, zero advertising, and zero scripts loaded from third-party origins. The bundle is built from the dependencies declared in `web/package.json`, all hosted from the same origin.

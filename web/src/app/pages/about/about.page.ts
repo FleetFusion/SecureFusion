@@ -96,7 +96,7 @@ import { RouterLink } from '@angular/router';
       </section>
 
       <p>
-        <a routerLink="/" class="text-ff-green hover:underline">&larr; Back to verifier</a>
+        <a routerLink="/verify" class="text-ff-green hover:underline">&larr; Back to verifier</a>
       </p>
     </article>
   `,

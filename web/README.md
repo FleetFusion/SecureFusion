@@ -1,6 +1,6 @@
 # SecureFusion Public Verifier (web/)
 
-The public verifier SPA hosted at **verify.fleetfusion.ai**. Anyone can drop a SecureFusion-anchored video file in and confirm — independently of FleetFusion or any other platform — that the file has not been altered since ingest.
+The SecureFusion project site, hosted at **securefusion.org**. The site has two parts: a project landing page at `/` that introduces the open standard, and the public verifier SPA at `/verify` where anyone can drop a SecureFusion-anchored video file in and confirm — independently of FleetFusion or any other platform — that the file has not been altered since ingest.
 
 ## What this is
 
@@ -21,7 +21,7 @@ npm run start          # opens http://localhost:4200
 
 ## Reproducible build
 
-A reproducible build is the cornerstone of the trust model. Anyone with the source can produce a byte-identical bundle to what is served at verify.fleetfusion.ai and confirm via Subresource Integrity (SRI) hashes that the live site is the open-source code.
+A reproducible build is the cornerstone of the trust model. Anyone with the source can produce a byte-identical bundle to what is served at securefusion.org and confirm via Subresource Integrity (SRI) hashes that the live site is the open-source code.
 
 ```bash
 cd web
@@ -50,7 +50,7 @@ The full CI matrix (Node 20 + 22, Linux + Windows) lives in [`../.github/workflo
 
 ## Verify a video
 
-1. Open verify.fleetfusion.ai (or your self-hosted copy).
+1. Open securefusion.org/verify (or your self-hosted copy).
 2. Drag-drop a video file onto the page, or click and pick one.
 3. The verifier hashes the bytes locally, then fetches the public XRPL transaction and the Bitcoin OTS proof.
 4. The three-tier result tells you what each layer of the public record says about the file.

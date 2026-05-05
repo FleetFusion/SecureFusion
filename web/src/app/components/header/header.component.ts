@@ -1,38 +1,60 @@
 import { Component, ElementRef, ViewChild, signal } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { RouterLink, RouterLinkActive } from '@angular/router';
 
 import { SettingsPanelComponent } from '../settings/settings.component';
 
 /**
  * Persistent application header.
  *
- * - Brand wordmark on the left, links to `/`.
- * - Settings cog (gear) at the right, between the brand and the GitHub
- *   mark, opens the slide-over `<app-settings-panel>`.
+ * - Brand wordmark on the left, links to `/` (the project landing page).
+ * - Inline nav row with `Verify` (`/verify`) and `About` (`/about`); the
+ *   active link gets `font-bold` via Angular's `RouterLinkActive`.
+ * - Settings cog (gear) on the right, opens the slide-over
+ *   `<app-settings-panel>` (only meaningful on `/verify`, but kept on
+ *   every route so the panel state persists across navigation).
  * - GitHub Octocat mark on the far right, links to the SecureFusion
  *   repo, opens in a new tab with `noopener noreferrer`.
  *
  * The brand colour palette is the FleetFusion `ff.green` family defined
- * in `tailwind.config.js`. Using `text-ff-green` keeps the verifier SPA
- * visually aligned with the FleetFusion console without taking a
- * dependency on the console's full Lepton-X theme.
+ * in `tailwind.config.js`. Using `text-ff-green` keeps the SPA visually
+ * aligned with the FleetFusion console without taking a dependency on
+ * the console's full Lepton-X theme.
  */
 @Component({
   standalone: true,
   selector: 'app-header',
-  imports: [RouterLink, SettingsPanelComponent],
+  imports: [RouterLink, RouterLinkActive, SettingsPanelComponent],
   host: { class: 'block w-full border-b border-gray-200 bg-white' },
   template: `
-    <div class="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
+    <div class="mx-auto flex max-w-5xl items-center justify-between gap-4 px-4 py-3">
       <a
         routerLink="/"
         class="flex items-center gap-2 font-semibold"
-        aria-label="SecureFusion Verifier home"
+        aria-label="SecureFusion home"
       >
         <span class="text-ff-green">SecureFusion</span>
-        <span class="text-gray-400">/</span>
-        <span class="text-gray-700">Verifier</span>
       </a>
+      <nav
+        class="flex items-center gap-4 text-sm text-gray-700"
+        aria-label="Primary"
+      >
+        <a
+          routerLink="/verify"
+          routerLinkActive="font-bold text-ff-green"
+          data-testid="nav-verify"
+          class="hover:text-black focus:outline-none focus:ring-2 focus:ring-ff-green focus:ring-offset-2 rounded"
+        >
+          Verify
+        </a>
+        <a
+          routerLink="/about"
+          routerLinkActive="font-bold text-ff-green"
+          data-testid="nav-about"
+          class="hover:text-black focus:outline-none focus:ring-2 focus:ring-ff-green focus:ring-offset-2 rounded"
+        >
+          About
+        </a>
+      </nav>
       <div class="flex items-center gap-3">
         <button
           #cogBtn

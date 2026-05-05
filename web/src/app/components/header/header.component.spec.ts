@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
+import { Router, provideRouter } from '@angular/router';
 
 import { TRUST_ANCHOR_LOADER } from '../../pages/verify/verify.page';
 import { PURGE_SCAN_CACHE_FN } from '../settings/settings.component';
@@ -10,7 +10,12 @@ describe('HeaderComponent', () => {
     await TestBed.configureTestingModule({
       imports: [HeaderComponent],
       providers: [
-        provideRouter([]),
+        provideRouter([
+          // Stub routes so RouterLink/RouterLinkActive resolve cleanly.
+          { path: '', children: [] },
+          { path: 'verify', children: [] },
+          { path: 'about', children: [] },
+        ]),
         {
           provide: TRUST_ANCHOR_LOADER,
           useValue: () =>
@@ -43,11 +48,44 @@ describe('HeaderComponent', () => {
     expect(a.rel).toContain('noreferrer');
   });
 
-  it('shows the FleetFusion / SecureFusion brand on the left', () => {
+  it('shows the SecureFusion brand wordmark on the left, linking to /', () => {
     const fixture = TestBed.createComponent(HeaderComponent);
     fixture.detectChanges();
-    expect(fixture.nativeElement.textContent).toContain('SecureFusion');
-    expect(fixture.nativeElement.textContent).toContain('Verifier');
+    const brand = fixture.nativeElement.querySelector(
+      'a[aria-label="SecureFusion home"]',
+    ) as HTMLAnchorElement;
+    expect(brand).toBeTruthy();
+    expect(brand.getAttribute('href')).toBe('/');
+    expect(brand.textContent).toContain('SecureFusion');
+  });
+
+  it('renders Verify and About nav links', () => {
+    const fixture = TestBed.createComponent(HeaderComponent);
+    fixture.detectChanges();
+    const verifyLink = fixture.nativeElement.querySelector(
+      '[data-testid="nav-verify"]',
+    ) as HTMLAnchorElement;
+    const aboutLink = fixture.nativeElement.querySelector(
+      '[data-testid="nav-about"]',
+    ) as HTMLAnchorElement;
+    expect(verifyLink).toBeTruthy();
+    expect(verifyLink.getAttribute('href')).toBe('/verify');
+    expect(aboutLink).toBeTruthy();
+    expect(aboutLink.getAttribute('href')).toBe('/about');
+  });
+
+  it('marks the Verify nav link active when on /verify', async () => {
+    const router = TestBed.inject(Router);
+    await router.navigateByUrl('/verify');
+    const fixture = TestBed.createComponent(HeaderComponent);
+    fixture.detectChanges();
+    // Allow RouterLinkActive to apply its classes after the nav.
+    await fixture.whenStable();
+    fixture.detectChanges();
+    const verifyLink = fixture.nativeElement.querySelector(
+      '[data-testid="nav-verify"]',
+    ) as HTMLAnchorElement;
+    expect(verifyLink.className).toContain('font-bold');
   });
 
   it('renders an inline GitHub Octocat SVG (no external image fetch)', () => {

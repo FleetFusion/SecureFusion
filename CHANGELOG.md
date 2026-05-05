@@ -16,7 +16,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [1.0.0] — 2026-05-04 (in development)
 
 ### Added
-- Public verifier SPA at `verify.fleetfusion.ai` — Angular standalone, browser-only, drag-drop or file picker, three-tier result (Hash on XRPL / Signed by platform key / Bitcoin-attested).
+- Public verifier SPA at `securefusion.org/verify` — Angular standalone, browser-only, drag-drop or file picker, three-tier result (Hash on XRPL / Signed by platform key / Bitcoin-attested). The site also serves a project landing page at `securefusion.org/` introducing the open standard.
 - `bitcoinProofMode` registry field with three modes: `xrpl-sf1ots` (default for FleetFusion), `https`, `none`. Adopters choose how their Bitcoin tier is exposed.
 - Reference verifier (`reference-verifier/`) — Node.js library for programmatic verification.
 - Multi-language sample anchor producers (C#, Java, Go, Python, TypeScript) — all produce identical bundleHashes against the conformance vectors.

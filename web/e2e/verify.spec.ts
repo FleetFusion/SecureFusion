@@ -81,7 +81,10 @@ test.describe('SecureFusion Verifier — verify page', () => {
       await route.fallback();
     });
 
-    await page.goto('/');
+    // The verifier moved to `/verify` when the SPA gained a project
+    // landing page at `/`. Hit it directly so the file picker is on the
+    // page from the first frame.
+    await page.goto('/verify');
   });
 
   test('header carries GitHub link to FleetFusion/SecureFusion', async ({ page }) => {
@@ -181,5 +184,22 @@ test.describe('SecureFusion Verifier — verify page', () => {
     await expect(page.getByRole('heading', { level: 1 })).toContainText(
       /about this verifier/i,
     );
+  });
+
+  test('landing page at / shows the project hero and routes to the verifier via the CTA', async ({
+    page,
+  }) => {
+    await page.goto('/');
+    // Hero heading is the only `<h1>` on the landing page.
+    await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 1 })).toContainText(
+      /tamper-evident video evidence/i,
+    );
+
+    // Click the primary CTA — should land on /verify with the file
+    // picker rendered.
+    await page.getByTestId('hero-verify-cta').click();
+    await expect(page).toHaveURL(/\/verify$/);
+    await expect(page.locator('input[type="file"]')).toBeAttached();
   });
 });

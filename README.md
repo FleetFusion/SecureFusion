@@ -21,7 +21,7 @@ It does this by hashing every video on ingest and anchoring those hashes to publ
 
 The standard is open. Any telematics provider, camera manufacturer, fleet platform, or insurer can implement it.
 
-## Public Verifier (verify.fleetfusion.ai)
+## Public Verifier (securefusion.org/verify)
 
 The public verifier is a browser-only Angular SPA that lets anyone drag in a SecureFusion-anchored video file and check it against the public ledgers — no upload, no telemetry, no FleetFusion API. It produces a three-tier result: **Hash on XRPL** (instant), **Signed by platform key** (Ed25519), **Bitcoin-attested** (via OpenTimestamps).
 
@@ -51,7 +51,7 @@ Two ready-made badges sit in [`assets/badges/`](assets/badges/) for use in video
   </tbody>
 </table>
 
-The badges are designed to be **clickable**: wire `onClick` to open the public verifier ([verify.fleetfusion.ai](https://verify.fleetfusion.ai)) in a new tab so the viewer can re-check the footage against the public ledgers without trusting the host platform. Both badges follow the SecureFusion brand: navy `#0b2545`, light blue `#1ec1f2`, white interior, padlock + play-button glyphs.
+The badges are designed to be **clickable**: wire `onClick` to open the public verifier ([securefusion.org/verify](https://securefusion.org/verify)) in a new tab so the viewer can re-check the footage against the public ledgers without trusting the host platform. Both badges follow the SecureFusion brand: navy `#0b2545`, light blue `#1ec1f2`, white interior, padlock + play-button glyphs.
 
 ## Why it exists
 
@@ -164,7 +164,7 @@ Please [open an issue](../../issues) or read [CONTRIBUTING.md](CONTRIBUTING.md).
 - [Public summary](docs/public-summary.md) — non-technical introduction
 - [FAQ](docs/faq.md)
 - [Governance](GOVERNANCE.md)
-- [Public verifier SPA (browser)](web/README.md) — verify.fleetfusion.ai
+- [Public verifier SPA (browser)](web/README.md) — securefusion.org/verify
 - [Reference verifier (Node.js)](reference-verifier/README.md)
 - [Sample implementations](samples/README.md) — C#, Python, Java, Go, TypeScript
 - [Conformance tests](conformance/README.md)
