@@ -105,7 +105,13 @@ Caveat for future awareness:
 
 ## Commit hashes per repo
 
-To be filled once committed (do NOT push):
+Neither pushed, per instruction.
 
-- Standalone (`D:/Projects/SecureFusion`): `<pending>`
-- Monorepo (`D:/Development/Dev-New/docs/securefusion-repo`): `<pending>`
+- Standalone (`D:/Projects/SecureFusion`) on `main`: `420e415` —
+  "feat: visual polish for landing page — standards-org with Stripe restraint"
+- Monorepo (`D:/Development/Dev-New`) on `Blockchain`: `b7c5a1ae` —
+  "Updated" (committed by the user during the session; same diff as
+  standalone, mirrored byte-for-byte before commit). The intended
+  message was `feat(securefusion-repo): mirror landing-page polish` —
+  recommend amending or following up with a clarifying commit if the
+  history matters.
