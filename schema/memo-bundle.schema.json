@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://securefusion.org/schema/v1/memo-bundle.schema.json",
+  "title": "SecureFusion SF1.bundle Memo Decoded",
+  "description": "Decoded form of the SF1.bundle binary memo (50 bytes total). This schema describes the parsed representation; the on-chain form is hex-encoded raw bytes per spec/memo-format.md §3.",
+  "type": "object",
+  "required": ["bundleHash", "eventId", "ingestSource", "channelCount"],
+  "additionalProperties": false,
+  "properties": {
+    "bundleHash": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$",
+      "description": "Lowercase hex SHA-256 over the canonicalised event manifest (32 bytes)."
+    },
+    "eventId": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+      "description": "Event UUID (16 raw bytes on chain, big-endian)."
+    },
+    "ingestSource": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 255,
+      "description": "Producing-platform code. SecureFusion v1: 1=fleetfusion (single value); 2-127 reserved for future SecureFusion-defined platforms; 128-255 vendor-specific."
+    },
+    "channelCount": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 255,
+      "description": "Number of channels in the event."
+    }
+  }
+}

@@ -1,0 +1,220 @@
+name: SecureFusion CI
+
+on:
+  push:
+    # While the public repo lives inside the FleetFusion monorepo, both main
+    # and develop run the SecureFusion CI. Once the public repo is split out
+    # into its own GitHub repository, this list reduces to [main]. See
+    # _team/joint-plan-final.md (round-3 trigger note).
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  reference-verifier:
+    name: Reference verifier (Node ${{ matrix.node-version }} / ${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        node-version: [20, 22]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Install verifier dependencies
+        working-directory: reference-verifier
+        run: npm ci || npm install
+
+      - name: Run verifier tests
+        working-directory: reference-verifier
+        run: npm test
+
+  go-samples:
+    name: Go samples (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+      - name: go test
+        working-directory: samples/go
+        run: go test ./...
+
+  python-samples:
+    name: Python samples (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Self-test
+        run: python samples/python/securefusion_anchor.py --self-test
+      - name: Unit test
+        run: python -m unittest discover -s samples/python -p 'test_*.py' -v
+
+  typescript-samples:
+    name: TypeScript samples (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install
+        working-directory: samples/typescript
+        run: npm install --no-audit --no-fund
+      - name: Type-check
+        working-directory: samples/typescript
+        run: npx tsc --noEmit
+      - name: Test
+        working-directory: samples/typescript
+        run: npm test
+
+  csharp-samples:
+    name: C# samples (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - name: dotnet build
+        working-directory: samples/csharp
+        run: dotnet build -c Release
+      - name: dotnet run (asserts bundleHash equality vs test-vectors.json)
+        working-directory: samples/csharp
+        run: dotnet run -c Release
+
+  java-samples:
+    name: Java samples (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Maven compile + run main (asserts bundleHash equality vs test-vectors.json)
+        working-directory: samples/java
+        run: mvn -B -ntp -f pom.xml compile exec:java -Dexec.mainClass=SecureFusionAnchor
+
+  web-build:
+    name: Verifier SPA (Node ${{ matrix.node-version }} / ${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        node-version: [20, 22]
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - run: npm ci
+      - run: npm run build
+      - run: npm test -- --watch=false --browsers=ChromeHeadlessCI
+
+  web-e2e:
+    name: Verifier SPA e2e (Playwright)
+    needs: web-build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run build
+      - run: npm run e2e
+      - if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: web/playwright-report/
+          retention-days: 7
+
+  web-lighthouse:
+    name: Verifier SPA Lighthouse (a11y + perf)
+    needs: web-build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - run: npm ci
+      - run: npm run build
+      - run: npm run lighthouse
+
+  spec-check:
+    name: Spec lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify required files are present
+        shell: bash
+        run: |
+          for f in spec/SPEC.md spec/memo-format.md spec/manifest-format.md spec/threat-model.md \
+                   schema/event-manifest.schema.json schema/memo-bundle.schema.json \
+                   examples/single-channel-event.json examples/four-channel-event.json \
+                   examples/test-vectors.json examples/xrpl-transaction.json \
+                   README.md GOVERNANCE.md CONTRIBUTING.md SECURITY.md \
+                   LICENSE-SPEC LICENSE-CODE; do
+            if [ ! -f "$f" ]; then
+              echo "Missing required file: $f"
+              exit 1
+            fi
+          done
+      - name: Validate JSON files parse
+        shell: bash
+        run: |
+          for f in $(find . -name '*.json' -not -path './node_modules/*' -not -path './*/node_modules/*'); do
+            python3 -c "import json; json.load(open('$f'))" || { echo "Invalid JSON: $f"; exit 1; }
+          done

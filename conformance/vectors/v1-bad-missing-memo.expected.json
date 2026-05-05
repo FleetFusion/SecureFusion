@@ -1,0 +1,5 @@
+{
+  "verified": false,
+  "reason": "memo-missing",
+  "description": "Memo set is not exactly {SF1.bundle, SF1.event, SF1.sig} — SF1.event is missing."
+}

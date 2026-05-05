@@ -1,0 +1,19 @@
+{
+  "notes": "Authoritative bundleHash test vectors for the example manifests in this directory. These values are the oracle: any conformant SecureFusion v1 implementation MUST hash the canonical bytes of each example to the matching bundleHash. The hashes were computed deterministically by the schema dev's compute-vectors.mjs script (see _team/compute-vectors.mjs) and the C# sample in samples/csharp prints the same values when run with the deterministic test seed. Keep this file in sync with the on-disk examples — every PR that touches an examples/*.json must update the matching bundleHash here in the same commit.",
+  "vectors": [
+    {
+      "manifest": "single-channel-event.json",
+      "bundleHash": "e1b8a2206cf8c53754c392f8e6b7aad25972e6349a70bd7c4cecde424caf0f05",
+      "specVersion": "SF1",
+      "manifestVersion": 1,
+      "canonicalLengthBytes": 583
+    },
+    {
+      "manifest": "four-channel-event.json",
+      "bundleHash": "8e4a41ebcc87183ca42f023409713ac2316f37c480bae00582536759543936fb",
+      "specVersion": "SF1",
+      "manifestVersion": 1,
+      "canonicalLengthBytes": 1114
+    }
+  ]
+}

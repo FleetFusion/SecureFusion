@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>SecureFusion.Conformance.Generate</RootNamespace>
+    <AssemblyName>SecureFusion.Conformance.Generate</AssemblyName>
+    <LangVersion>latest</LangVersion>
+  </PropertyGroup>
+
+  <!--
+    Standalone vector generator. Maintainers run this when the schema or
+    example manifests change:
+
+        dotnet run --project conformance -- --regen-vectors
+
+    The generator reads examples/single-channel-event.json and
+    examples/four-channel-event.json, canonicalises them with the same
+    Utf8JsonWriter rules as FleetAssistant.SecureFusion.SecureManifestBuilder,
+    builds the 50-byte SF1.bundle (with .NET Guid.ToByteArray byte order),
+    signs SF1.sig with NSec.Cryptography Ed25519 using the deterministic test
+    seed (joint-plan-final §D11, bytes 0x00..0x1F), and writes the full
+    conformance/vectors/* set. The output MUST be byte-identical to the Node
+    generator (_team/build-conformance-vectors.mjs).
+
+    NEVER runs automatically in CI; the diff against committed vectors is
+    reviewed by the maintainer. CI only diffs.
+  -->
+  <ItemGroup>
+    <PackageReference Include="NSec.Cryptography" Version="24.4.0" />
+  </ItemGroup>
+
+</Project>

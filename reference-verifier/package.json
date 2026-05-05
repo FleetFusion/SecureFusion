@@ -1,0 +1,38 @@
+{
+  "name": "@securefusion/reference-verifier",
+  "version": "1.0.0",
+  "description": "Reference implementation of the SecureFusion verifier. Verifies that a video file matches a SecureFusion anchor on the XRP Ledger.",
+  "type": "module",
+  "main": "src/index.js",
+  "bin": {
+    "securefusion-verify": "./src/cli.js"
+  },
+  "scripts": {
+    "test": "node --test",
+    "lint": "echo 'lint placeholder'"
+  },
+  "keywords": [
+    "securefusion",
+    "video-evidence",
+    "blockchain",
+    "tamper-evident",
+    "xrpl",
+    "fleet-telematics"
+  ],
+  "author": "The SecureFusion Contributors",
+  "license": "Apache-2.0",
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "ajv": "^8.17.1",
+    "ajv-formats": "^3.0.1"
+  },
+  "devDependencies": {},
+  "homepage": "https://github.com/[org]/securefusion#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/[org]/securefusion.git",
+    "directory": "reference-verifier"
+  }
+}

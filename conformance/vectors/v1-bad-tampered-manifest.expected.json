@@ -1,0 +1,5 @@
+{
+  "verified": false,
+  "reason": "bundle-hash-mismatch",
+  "description": "SF1.event canonical bytes hash to a value different from SF1.bundle.bundleHash; manifest was modified after sealing."
+}

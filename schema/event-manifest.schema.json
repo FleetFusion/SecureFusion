@@ -1,0 +1,117 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://securefusion.org/schema/v1/event-manifest.schema.json",
+  "title": "SecureFusion Event Manifest (SF1)",
+  "description": "Canonical event manifest for a single vehicle-media event. The bundleHash anchored on chain is SHA-256 over the canonical UTF-8 byte representation of this document. Implementers MUST be able to produce a valid manifest from spec/manifest-format.md §6 alone.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "channels",
+    "eventId",
+    "ingestSource",
+    "ingestedAt",
+    "occurredAt",
+    "sealedAt",
+    "v",
+    "vehicleEventId",
+    "vehicleId"
+  ],
+  "properties": {
+    "channels": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 16,
+      "items": { "$ref": "#/$defs/channel" },
+      "description": "One entry per video channel. Channels MUST be sorted by channelId using ordinal (Unicode codepoint) comparison; see SPEC §6.1."
+    },
+    "eventId": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+      "description": "Lowercase hyphenated UUID for the event. In v1 emissions this equals vehicleEventId; the field is preserved for forward-compatibility with future v2+ where they may diverge."
+    },
+    "ingestSource": {
+      "type": "string",
+      "enum": ["fleetfusion"],
+      "description": "Producing platform identifier. SecureFusion v1 defines a single value, \"fleetfusion\"; v2 may extend this enum. Per-upstream-provider distinctions are not exposed on the public wire format."
+    },
+    "ingestedAt": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}Z$",
+      "description": "Time the ingest gateway first hashed the event. UTC, exactly 3 fractional-second digits, suffix Z."
+    },
+    "occurredAt": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}Z$",
+      "description": "Capture time. UTC, exactly 3 fractional-second digits, suffix Z."
+    },
+    "sealedAt": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}Z$",
+      "description": "Time the manifest was canonicalised and the bundleHash computed. UTC, exactly 3 fractional-second digits, suffix Z."
+    },
+    "signerKeyId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64,
+      "description": "Optional. Identifies which application signing key was active when this manifest was sealed. Per §6.1.7 omit-when-empty: producers MUST omit this field when empty/null and MUST NOT emit \"\" or null. Verifiers MUST reject manifests in which signerKeyId is present-but-empty."
+    },
+    "tenantId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64,
+      "description": "Optional pseudonymous tenant identifier. Per §6.1.7 omit-when-empty: producers MUST omit this field when empty/zero (e.g. Guid.Empty) and MUST NOT emit \"\" or null."
+    },
+    "v": {
+      "type": "integer",
+      "const": 1,
+      "description": "Manifest schema version. v1 verifiers MUST reject any value other than 1 with reason code unsupported-manifest-version (SPEC §1.5)."
+    },
+    "vehicleEventId": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+      "description": "Lowercase hyphenated UUID identifying the originating vehicle event in the producing platform's domain model. Always present; in v1 equals eventId."
+    },
+    "vehicleId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64,
+      "description": "Tenant-chosen vehicle identifier. Producers SHOULD use a stable opaque identifier (e.g. UUID or fleet asset code)."
+    }
+  },
+  "$defs": {
+    "channel": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["channelId", "sha256", "sizeBytes"],
+      "properties": {
+        "capturedAt": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}Z$",
+          "description": "Optional. Channel-specific capture start time. Same timestamp shape as the top-level fields."
+        },
+        "channelId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 32,
+          "pattern": "^[a-z0-9_-]+$",
+          "description": "Unique identifier for the channel within the event. Lowercase alphanumeric with `_`/`-`."
+        },
+        "durationMs": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Optional. Duration in milliseconds. Integer only; floats are forbidden in v1."
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$",
+          "description": "Lowercase hex SHA-256 of the raw channel video file as received."
+        },
+        "sizeBytes": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "File size in bytes. Integer only; floats are forbidden in v1."
+        }
+      }
+    }
+  }
+}

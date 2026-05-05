@@ -1,0 +1,23 @@
+{
+  "name": "@securefusion/sample-typescript",
+  "version": "1.0.0",
+  "description": "SecureFusion v1.0 anchor producer sample (TypeScript)",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "anchor": "tsx anchor.ts",
+    "submit:xrpl": "tsx submit_xrpl.ts",
+    "submit:bitcoin": "tsx submit_bitcoin.ts",
+    "test": "tsx --test canonical.test.ts"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "devDependencies": {
+    "tsx": "^4.7.0",
+    "typescript": "^5.4.0",
+    "@types/node": "^20.11.0"
+  },
+  "// for-real-XRPL-submission": "npm install xrpl",
+  "license": "Apache-2.0"
+}

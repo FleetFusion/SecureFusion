@@ -1,0 +1,21 @@
+{
+  "channels": [
+    {
+      "capturedAt": "2026-04-30T12:34:56.000Z",
+      "channelId": "front",
+      "durationMs": 12000,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "sizeBytes": 8421376
+    }
+  ],
+  "eventId": "01933f5e-7c4a-7890-abcd-1234567890ab",
+  "ingestSource": "fleetfusion",
+  "ingestedAt": "2026-04-30T12:35:02.123Z",
+  "occurredAt": "2026-04-30T12:34:56.000Z",
+  "sealedAt": "2026-04-30T12:35:05.456Z",
+  "signerKeyId": "platform-2026-04",
+  "tenantId": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
+  "v": 1,
+  "vehicleEventId": "01933f5e-7c4a-7890-abcd-1234567890ab",
+  "vehicleId": "11111111-2222-3333-4444-555555555555"
+}

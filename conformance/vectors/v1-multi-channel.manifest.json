@@ -1,0 +1,42 @@
+{
+  "channels": [
+    {
+      "capturedAt": "2026-04-30T15:22:18.000Z",
+      "channelId": "cabin",
+      "durationMs": 30000,
+      "sha256": "5994471abb01112afcc18159f6cc74b4f511b99806da59b3caf5a9c173cacfc5",
+      "sizeBytes": 5242880
+    },
+    {
+      "capturedAt": "2026-04-30T15:22:18.000Z",
+      "channelId": "front",
+      "durationMs": 30000,
+      "sha256": "2c26b46b68ffc68ff99b453c1d30413413422d706483bfa0f98a5e886266e7ae",
+      "sizeBytes": 12582912
+    },
+    {
+      "capturedAt": "2026-04-30T15:22:18.000Z",
+      "channelId": "left",
+      "durationMs": 30000,
+      "sha256": "fcde2b2edba56bf408601fb721fe9b5c338d10ee429ea04fae5511b68fbf8fb9",
+      "sizeBytes": 7340032
+    },
+    {
+      "capturedAt": "2026-04-30T15:22:18.000Z",
+      "channelId": "right",
+      "durationMs": 30000,
+      "sha256": "7d793037a0760186574b0282f2f435e7d09c2ab37c47b1e5e9cd2f3b3f8a8b21",
+      "sizeBytes": 7340032
+    }
+  ],
+  "eventId": "0193bc7d-9e42-7abc-89de-0123456789ab",
+  "ingestSource": "fleetfusion",
+  "ingestedAt": "2026-04-30T15:22:31.847Z",
+  "occurredAt": "2026-04-30T15:22:18.000Z",
+  "sealedAt": "2026-04-30T15:22:35.012Z",
+  "signerKeyId": "platform-2026-04",
+  "tenantId": "bbbbbbbb-cccc-dddd-eeee-ffffffffffff",
+  "v": 1,
+  "vehicleEventId": "0193bc7d-9e42-7abc-89de-0123456789ab",
+  "vehicleId": "22222222-3333-4444-5555-666666666666"
+}

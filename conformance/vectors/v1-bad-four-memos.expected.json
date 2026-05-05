@@ -1,0 +1,5 @@
+{
+  "verified": false,
+  "reason": "memo-extra",
+  "description": "Memo set contains a non-SF1 memo (SF1.junk). Exactly three SF1 memos are permitted in v1 anchors."
+}

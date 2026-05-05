@@ -1,0 +1,5 @@
+{
+  "verified": false,
+  "reason": "signature-invalid",
+  "description": "SF1.sig does not verify against (bundleBytes || eventBytes) under the registry appPublicKey."
+}

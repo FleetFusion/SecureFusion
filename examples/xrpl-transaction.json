@@ -1,0 +1,38 @@
+{
+  "_comment": "Example SecureFusion XRPL anchor transaction for the single-channel-event.json manifest. Field values shown here are illustrative; real transactions will have sequence, signature, and hash assigned by the network and signing process. The Memos array is the canonical SecureFusion structure.",
+  "TransactionType": "Payment",
+  "Account": "rSecureFusionPlatformAccountAddressXXXXXXX",
+  "Destination": "rSecureFusionPlatformAccountAddressXXXXXXX",
+  "Amount": "1",
+  "Fee": "10",
+  "Sequence": 4827193,
+  "Memos": [
+    {
+      "_meta": "Memo 1: SF1.bundle - 50-byte binary header (hex-encoded). Contains bundleHash || eventId(raw 16-byte UUID) || ingestSource(1) || channelCount(1).",
+      "Memo": {
+        "MemoType": "5346312E62756E646C65",
+        "MemoFormat": "6170706C69636174696F6E2F6F637465742D73747265616D",
+        "MemoData": "_replace_with_actual_50_byte_hex_when_implementing_"
+      }
+    },
+    {
+      "_meta": "Memo 2: SF1.event - canonical event manifest JSON, hex-encoded UTF-8 bytes. Sorted keys, no whitespace.",
+      "Memo": {
+        "MemoType": "5346312E6576656E74",
+        "MemoFormat": "6170706C69636174696F6E2F6A736F6E",
+        "MemoData": "_replace_with_hex_of_canonical_manifest_json_"
+      }
+    },
+    {
+      "_meta": "Memo 3: SF1.sig - Ed25519 signature (64 bytes, hex-encoded) over the concatenated raw bytes of Memo 1 and Memo 2 payloads.",
+      "Memo": {
+        "MemoType": "5346312E736967",
+        "MemoFormat": "6170706C69636174696F6E2F6F637465742D73747265616D",
+        "MemoData": "_replace_with_64_byte_ed25519_signature_hex_"
+      }
+    }
+  ],
+  "SigningPubKey": "_xrpl_account_public_key_hex_",
+  "TxnSignature": "_xrpl_transaction_signature_hex_",
+  "hash": "_validated_transaction_hash_assigned_by_network_"
+}

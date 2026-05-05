@@ -1,0 +1,40 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>SecureFusion.Samples.CSharp</RootNamespace>
+    <AssemblyName>SecureFusion.Samples.CSharp</AssemblyName>
+    <LangVersion>latest</LangVersion>
+  </PropertyGroup>
+
+  <!--
+    Ed25519 signing: NSec.Cryptography (a managed wrapper over libsodium) is the
+    reference dependency. It mirrors FleetFusion's production builder exactly and
+    lets the demo produce real SF1.sig values from the deterministic test seed
+    (conformance/README.md). BouncyCastle.Cryptography is an alternative pure-
+    managed option; either will produce byte-identical signatures over the same
+    input. XRPL submission is shown in submit_xrpl/SubmitXrpl.cs as a reference
+    snippet; that file is intentionally excluded from the default compile (it
+    has its own Main entry point) and is documented in samples/csharp/README.md.
+  -->
+  <ItemGroup>
+    <PackageReference Include="NSec.Cryptography" Version="24.4.0" />
+  </ItemGroup>
+
+  <!--
+    Reference-only snippets shipped under submit_xrpl/ and submit_bitcoin/. They
+    each declare a Main and depend on third-party libraries (Xrpl.NET) that are
+    not bundled here. Excluding them from the default compile keeps `dotnet build
+    samples/csharp` green while leaving the snippets readable in the repo.
+  -->
+  <ItemGroup>
+    <Compile Remove="submit_xrpl/**/*.cs" />
+    <Compile Remove="submit_bitcoin/**/*.cs" />
+    <None Include="submit_xrpl/**/*.cs" />
+    <None Include="submit_bitcoin/**/*.cs" />
+  </ItemGroup>
+
+</Project>

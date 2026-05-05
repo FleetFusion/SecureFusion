@@ -1,0 +1,10 @@
+{
+  "manifest": "single-channel-event.json",
+  "specVersion": "SF1",
+  "manifestVersion": 1,
+  "expectedBundleHash": "e1b8a2206cf8c53754c392f8e6b7aad25972e6349a70bd7c4cecde424caf0f05",
+  "canonicalLengthBytes": 583,
+  "notes": "Single-channel SecureFusion event manifest example. The on-disk JSON is pretty-printed for readability; the verifier re-canonicalises (alpha-sort, no whitespace, integer-only numerics, omit-when-empty for tenantId / signerKeyId) before computing bundleHash. The expected bundleHash is also recorded in examples/test-vectors.json (which is the oracle every implementation tests against).",
+  "shape": "Mirrors what FleetFusion's SecureManifestBuilder emits today: every required v1 field present, optional tenantId + signerKeyId present and non-empty, no dropped legacy fields (eventType / geo / driverId / notes / extras / role / codec / resolution).",
+  "ingestSource": "fleetfusion (single-value enum in v1; see SPEC §6 Field Inventory)."
+}

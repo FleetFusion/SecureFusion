@@ -1,0 +1,5 @@
+{
+  "verified": false,
+  "reason": "memo-duplicate",
+  "description": "Two memos share the same SF1 MemoType (SF1.bundle). Duplicates are a hard failure in v1."
+}

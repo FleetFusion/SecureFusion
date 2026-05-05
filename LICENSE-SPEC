@@ -1,0 +1,55 @@
+SecureFusion Specification
+Copyright (c) 2026 The SecureFusion Contributors
+
+The SecureFusion specification (this directory's `spec/`, `schema/`, `examples/`,
+and `docs/` contents) is licensed under the Creative Commons Attribution 4.0
+International License (CC BY 4.0).
+
+You are free to:
+
+  - Share — copy and redistribute the material in any medium or format
+  - Adapt — remix, transform, and build upon the material
+  - For any purpose, including commercially.
+
+Under the following terms:
+
+  - Attribution — You must give appropriate credit, provide a link to the
+    original specification, and indicate if changes were made. You may do
+    so in any reasonable manner, but not in any way that suggests the
+    licensor endorses you or your use.
+
+  - No additional restrictions — You may not apply legal terms or
+    technological measures that legally restrict others from doing anything
+    the license permits.
+
+The full text of the CC BY 4.0 licence is available at:
+
+    https://creativecommons.org/licenses/by/4.0/legalcode
+
+----
+
+INTENT
+
+The SecureFusion specification is intentionally permissively licensed. Any
+telematics platform, camera manufacturer, fleet operator, insurer, regulator,
+or other party may implement, extend, redistribute, or build on the standard
+without charge or restriction beyond attribution.
+
+This includes:
+
+  - Building commercial products that implement SecureFusion
+  - Publishing translations or adaptations of the specification
+  - Including the specification (in whole or in part) in other works
+  - Creating competing implementations
+
+The specification authors retain no patent rights or trade marks over the
+ideas described herein.
+
+The "SecureFusion" name and logo, where applicable, are not licensed under
+CC BY 4.0. Use of the name to describe a compliant implementation is
+encouraged; use of the name in a way that misrepresents non-compliant
+software as SecureFusion-compliant is not permitted under standard trade
+mark principles.
+
+This dual treatment — open specification, lightly protected name — is
+modelled on standards bodies such as the W3C, IETF, and ISO.

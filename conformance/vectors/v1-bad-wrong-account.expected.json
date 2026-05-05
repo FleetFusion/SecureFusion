@@ -1,0 +1,5 @@
+{
+  "verified": false,
+  "reason": "account-not-self-pay",
+  "description": "Account != Destination. v1 SecureFusion anchors are always self-pay; mismatch is a hard failure."
+}

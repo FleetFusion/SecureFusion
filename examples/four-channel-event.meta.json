@@ -1,0 +1,10 @@
+{
+  "manifest": "four-channel-event.json",
+  "specVersion": "SF1",
+  "manifestVersion": 1,
+  "expectedBundleHash": "8e4a41ebcc87183ca42f023409713ac2316f37c480bae00582536759543936fb",
+  "canonicalLengthBytes": 1114,
+  "notes": "Four-channel SecureFusion event manifest example (cabin / front / left / right). Channels are stored on disk in the same order they would appear after the canonical sort (channelId, ordinal codepoint comparison) so the on-disk shape and the canonical shape match exactly — but the verifier re-sorts before hashing, so an out-of-order on-disk channels array is still valid; the bundleHash is identical.",
+  "shape": "Multi-channel example. Mirrors FleetFusion's SecureManifestBuilder shape — required v1 fields, optional tenantId + signerKeyId present, no dropped legacy fields.",
+  "ingestSource": "fleetfusion (single-value enum in v1; see SPEC §6 Field Inventory)."
+}

@@ -1,0 +1,21 @@
+{
+  "$comment": "TESTNET DEMO ENTRY ONLY. Do not use to verify mainnet anchors. The mainnet entry will be added when FleetFusion's mainnet account is published — see TODO below.",
+  "xrplAccount": "rSF1TESTNETxxxxxxxxxxxxxxxxxxxxxxx",
+  "network": "testnet",
+  "specVersion": "SF1",
+  "bitcoinProofMode": "xrpl-sf1ots",
+  "registry": [
+    {
+      "organisation": "FleetFusion (TESTNET — DEMO ONLY)",
+      "xrplAccount": "rSF1TESTNETxxxxxxxxxxxxxxxxxxxxxxx",
+      "appPublicKey": "03a107bff3ce10be1d70dd18e74bc09967e4d6309ba50d5f1ddc8664125531b8",
+      "network": "testnet",
+      "specVersion": "SF1",
+      "certifiedAt": "2026-05-04T00:00:00.000Z",
+      "revokedAt": null,
+      "active": true,
+      "bitcoinProofMode": "xrpl-sf1ots"
+    }
+  ],
+  "TODO": "Add the FleetFusion mainnet entry when the production XRPL account is published. The mainnet entry MUST live in a separate platform-account.json under a /mainnet/ subdirectory, OR be appended to the registry array here with network='mainnet'. The verifier rejects with 'network-mismatch' (D5) if the rippled tx network doesn't match the matching registry entry."
+}
