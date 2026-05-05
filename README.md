@@ -29,6 +29,30 @@ The verifier is the trust tool for this standard: *audit me — this is open sou
 
 Hosting is via Azure Static Web Apps; deployment is automated by [`.github/workflows/azure-static-web-apps.yml`](.github/workflows/azure-static-web-apps.yml) and requires the GitHub secret `AZURE_STATIC_WEB_APPS_API_TOKEN` to be configured on the standalone public repo.
 
+## Player overlay badges
+
+Two ready-made badges sit in [`assets/badges/`](assets/badges/) for use in video players that display SecureFusion-anchored footage. Pick one and overlay it on the player frame — typically top-right, with a recommended overlay width of ~120 px on a 1920×1080 player (scale proportionally; the source PNGs are 1605×372 with transparent backgrounds).
+
+<table>
+  <thead>
+    <tr><th>Badge</th><th>File</th><th>When to use</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><img src="assets/badges/securefusion.png" alt="SECURE FUSION" width="280" /></td>
+      <td><a href="assets/badges/securefusion.png"><code>securefusion.png</code></a></td>
+      <td><strong>Branded.</strong> Use when your platform is SecureFusion-compliant and you want the brand to read on the player frame. Display whenever an event has at least Tier&nbsp;1 (XRPL anchor) verified.</td>
+    </tr>
+    <tr>
+      <td><img src="assets/badges/secured-video.png" alt="SECURED VIDEO" width="280" /></td>
+      <td><a href="assets/badges/secured-video.png"><code>secured-video.png</code></a></td>
+      <td><strong>Generic.</strong> Neutral wording for platforms that prefer not to display the SecureFusion name on the player. Same Tier-1 trigger.</td>
+    </tr>
+  </tbody>
+</table>
+
+The badges are designed to be **clickable**: wire `onClick` to open the public verifier ([verify.fleetfusion.app](https://verify.fleetfusion.app)) in a new tab so the viewer can re-check the footage against the public ledgers without trusting the host platform. Both badges follow the SecureFusion brand: navy `#0b2545`, light blue `#1ec1f2`, white interior, padlock + play-button glyphs.
+
 ## Why it exists
 
 Video from commercial vehicles is increasingly the deciding factor in:
