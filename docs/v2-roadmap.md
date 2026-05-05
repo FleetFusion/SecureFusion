@@ -206,7 +206,7 @@ Don't touch v2 spec text until these are true:
 1. **Mainnet trust anchor** for at least one provider (testnet is fine for now; mainnet validates the operational story)
 2. **2–3 additional providers** in the testnet registry — proves the PR-to-add flow scales
 3. **`revokedAt` enforcement test vectors** in `conformance/` — locks the semantic before v2 codifies it
-4. **Public verifier site** (`verify.fleetfusion.app`) live with real production traffic — surfaces the gaps that aren't visible from desk-design
+4. **Public verifier site** (`verify.fleetfusion.ai`) live with real production traffic — surfaces the gaps that aren't visible from desk-design
 5. **6–12 months operational experience** with v1 — long enough to accumulate the surprises that should drive v2
 
 ---
