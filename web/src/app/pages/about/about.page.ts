@@ -74,7 +74,7 @@ import { RouterLink } from '@angular/router';
           </li>
           <li>
             <a
-              href="https://github.com/FleetFusion/SecureFusion/blob/main/spec/securefusion-v1.md"
+              href="https://github.com/FleetFusion/SecureFusion/blob/main/spec/SPEC.md"
               target="_blank"
               rel="noopener noreferrer"
               class="text-ff-green hover:underline"
@@ -84,7 +84,7 @@ import { RouterLink } from '@angular/router';
           </li>
           <li>
             <a
-              href="https://github.com/FleetFusion/SecureFusion/blob/main/spec/securefusion-v1.md#4-architecture"
+              href="https://github.com/FleetFusion/SecureFusion/blob/main/spec/memo-format.md"
               target="_blank"
               rel="noopener noreferrer"
               class="text-ff-green hover:underline"

@@ -27,7 +27,7 @@ import { Component } from '@angular/core';
       </span>
       <div class="flex items-center gap-4">
         <a
-          href="https://github.com/FleetFusion/SecureFusion/blob/main/spec/securefusion-v1.md"
+          href="https://github.com/FleetFusion/SecureFusion/blob/main/spec/SPEC.md"
           target="_blank"
           rel="noopener noreferrer"
           class="text-slate-600 hover:text-brand-navy transition-colors"

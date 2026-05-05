@@ -29,7 +29,7 @@ describe('AboutPage', () => {
     expect(
       links.some((a) =>
         a.href.startsWith(
-          'https://github.com/FleetFusion/SecureFusion/blob/main/spec/securefusion-v1.md',
+          'https://github.com/FleetFusion/SecureFusion/blob/main/spec/SPEC.md',
         ),
       ),
     ).toBe(true);
