@@ -188,7 +188,7 @@ The first commercial implementation is being built by FleetFusion. We hope it wo
 
 - Issues and discussion: GitHub
 - Standard governance: see [GOVERNANCE.md](GOVERNANCE.md)
-- Press and partnerships: [contact email]
+- Press and partnerships: info@fleetfusion.ai
 
 ---
 
