@@ -191,10 +191,10 @@ import { RouterLink } from '@angular/router';
           </h2>
           <p class="text-lg text-slate-700 leading-relaxed max-w-3xl">
             Video from commercial vehicles is increasingly the deciding
-            factor in insurance claims, regulatory schemes like DVSA Earned
-            Recognition, driver coaching decisions that affect livelihoods,
-            civil and criminal proceedings, and public-interest
-            investigations after collisions and near-misses.
+            factor in insurance claims, regulatory and compliance schemes
+            that rely on dashcam or in-cab video, driver coaching decisions
+            that affect livelihoods, civil and criminal proceedings, and
+            public-interest investigations after collisions and near-misses.
           </p>
           <p class="text-lg text-slate-700 leading-relaxed mt-6 max-w-3xl">
             Today the trustworthiness of that video rests entirely on the

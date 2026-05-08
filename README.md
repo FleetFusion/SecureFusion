@@ -58,7 +58,7 @@ The badges are designed to be **clickable**: wire `onClick` to open the public v
 Video from commercial vehicles is increasingly the deciding factor in:
 
 - Insurance claims and at-fault disputes
-- DVSA Earned Recognition and other regulatory schemes
+- Regulatory and compliance schemes that rely on dashcam or in-cab video
 - Driver coaching decisions that affect livelihoods
 - Civil and criminal proceedings involving road incidents
 - Public-interest investigations after collisions and near-misses
@@ -152,7 +152,7 @@ We are seeking input from:
 
 - Telematics platforms and camera manufacturers interested in implementing the standard
 - Insurers and claims handlers who want to verify SecureFusion-anchored video
-- Regulators (DVSA, traffic commissioners, transport authorities) who may benefit from a vendor-neutral evidence standard
+- Regulators and transport authorities who may benefit from a vendor-neutral evidence standard
 - Fleet operators with views on what evidence integrity should look like
 - Independent security researchers willing to review the spec and threat model
 

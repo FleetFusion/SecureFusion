@@ -17,7 +17,7 @@ The standard is open. Any telematics provider, camera manufacturer, fleet platfo
 Video evidence from commercial fleets is increasingly central to:
 
 - Insurance claims and "at-fault" disputes
-- Regulatory schemes such as DVSA Earned Recognition
+- Regulatory and compliance schemes that rely on dashcam or in-cab video
 - Coaching and training programmes that affect driver livelihoods
 - Civil and criminal proceedings involving road incidents
 - Public-interest investigations (cyclist incidents, near-misses, hit-and-run)
@@ -51,7 +51,7 @@ For SecureFusion to mean something the same way "SSL" or "PDF/A" or "ISO 9001" m
 
 - **Fleet operators** who want their video evidence to carry weight in insurance and legal disputes without depending on their telematics vendor's reputation.
 - **Insurers** who want to reduce fraud and accept video evidence faster, because they can verify it themselves.
-- **Regulators** (DVSA, traffic commissioners, transport authorities) who need an evidence standard they can rely on across vendors.
+- **Regulators and transport authorities** who need an evidence standard they can rely on across vendors.
 - **Camera and telematics vendors** who want their platforms' video output to be portable, trustworthy, and acceptable as evidence regardless of which fleet operator runs them.
 - **Drivers** who deserve the right to prove their own footage is genuine, including footage that exonerates them.
 - **The public** (vulnerable road users, journalists, families seeking answers) who need a way to verify video that doesn't require trusting a private company.

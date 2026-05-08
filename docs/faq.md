@@ -99,7 +99,7 @@ The most direct path is to expose a hash of each captured file (or, better, a pe
 
 Run the reference verifier against the file before accepting it as evidence. The verifier's output gives you the chain of trust: which platform anchored it, when, and against what cryptographic commitments. For high-stakes claims, you may want to commission an independent audit of the implementing platform's ingest controls.
 
-### I'm a regulator. How does this fit with frameworks like DVSA Earned Recognition?
+### I'm a regulator. How does this fit with compliance frameworks?
 
 SecureFusion is a vendor-neutral evidence standard. It can sit underneath any compliance scheme that relies on dashcam or in-cab video. Adoption requires no change to the regulatory framework itself, only confidence that video tendered as evidence is genuine. We are happy to engage on conformance and assurance questions.
 

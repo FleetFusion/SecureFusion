@@ -32,7 +32,7 @@ The standard is governed through a neutral, community-led process drawing on inp
 - **Fleet operators** gain video evidence that carries weight in disputes regardless of which platform produced it, eliminating vendor lock-in around evidential value.
 - **Insurers** can verify clips themselves, reducing fraud, accelerating claims, and lowering investigation costs.
 - **Drivers** gain the right to prove that exonerating footage is genuine, addressing a long-standing imbalance in incident disputes.
-- **Regulators** including DVSA and traffic commissioners gain a vendor-neutral evidence standard suitable for compliance schemes such as Earned Recognition.
+- **Regulators** gain a vendor-neutral evidence standard suitable for compliance schemes that rely on dashcam or in-cab video.
 - **The public** (vulnerable road users, journalists, families seeking answers) gain a way to verify fleet video without depending on the cooperation of any private company.
 
 ### What SecureFusion does not claim

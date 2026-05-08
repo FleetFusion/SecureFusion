@@ -266,7 +266,7 @@ Each rejection returns a structured `reason` code (`memo-extra`, `memo-duplicate
 - The Merkle root is submitted to **OpenTimestamps** (free; aggregates with other users into a single Bitcoin transaction roughly hourly).
 - Per-event proof files (`.ots`) are returned and stored against each event.
 - Once OpenTimestamps reports a Bitcoin confirmation, the proof is upgraded and stored; event status flips to `BitcoinConfirmed`.
-- For high-value events flagged by operator or policy (e.g. active insurance claim, DVSA case), a **direct Bitcoin transaction** is submitted with the Merkle root in `OP_RETURN`. Cost: ~£1.50/tx at current fees. This is on-demand, not default.
+- For high-value events flagged by operator or policy (e.g. active insurance claim, regulatory enquiry), a **direct Bitcoin transaction** is submitted with the Merkle root in `OP_RETURN`. Cost: ~£1.50/tx at current fees. This is on-demand, not default.
 
 #### 7.2.1 Bitcoin proof modes (round-4 D12)
 
@@ -536,7 +536,7 @@ A no-login, no-FleetFusion-account-required page where anyone (insurer, lawyer, 
 - Penetration test of public API.
 - Key rotation runbook.
 - Disaster recovery: how do we re-anchor if XRPL or OTS go down? (queue-and-replay; XRPL has had no major outage since 2012, but plan for it).
-- Legal review with insurance and DVSA partners.
+- Legal review with insurance and regulatory partners.
 - Documentation + customer-facing marketing material.
 
 ## 14. Open questions
