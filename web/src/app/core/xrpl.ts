@@ -16,6 +16,8 @@
  *     independent operators.
  */
 
+import { abortableDelay, requestRippled, type RetryNotice } from './rippled-request';
+
 const DEFAULT_RIPPLED_URL = 'https://xrplcluster.com';
 
 export interface FetchTransactionOptions {
@@ -29,6 +31,7 @@ export interface AccountTxOptions {
   rippledUrl?: string;
   fromLedger?: number;
   pageSize?: number;
+  onRetry?: (notice: RetryNotice) => void;
   signal?: AbortSignal;
 }
 
@@ -88,32 +91,12 @@ async function fetchTransactionFromUrl(
     params: [{ transaction: txHash, binary: false }],
   };
 
-  const response = await fetch(rippledUrl, {
-    method: 'POST',
-    headers: { 'content-type': 'application/json' },
-    body: JSON.stringify(body),
-    redirect: 'manual',
-    signal,
-  });
+  const result = await requestRippled<RippledTxResult>(rippledUrl, body, signal);
 
-  if (response.status !== 200) {
-    throw new Error(
-      `rippled HTTP ${response.status} from ${rippledUrl} ` +
-        `(redirects are refused; user must point at a trusted node)`,
-    );
-  }
-
-  const json = (await response.json()) as { result?: RippledTxResult & { status?: string; error?: string } };
-  if (!json.result) {
-    throw new Error('rippled response missing result');
-  }
-  if (json.result.status === 'error') {
-    throw new Error(`rippled error: ${json.result.error}`);
-  }
-  if (!json.result.validated) {
+  if (!result.validated) {
     throw new Error('Transaction is not yet validated');
   }
-  return json.result;
+  return result;
 }
 
 async function fetchTransactionMultiNode(
@@ -188,6 +171,7 @@ export async function* accountTx(
     rippledUrl = DEFAULT_RIPPLED_URL,
     fromLedger = -1,
     pageSize = 200,
+    onRetry,
     signal,
   } = options;
 
@@ -205,35 +189,15 @@ export async function* accountTx(
     };
     if (marker !== undefined) params['marker'] = marker;
 
-    let json: { result?: { transactions?: unknown[]; marker?: unknown; status?: string; error?: string } };
+    let result: { transactions?: unknown[]; marker?: unknown };
     try {
-      const resp = await fetch(rippledUrl, {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ method: 'account_tx', params: [params] }),
-        redirect: 'manual',
-        signal,
-      });
-      if (resp.status !== 200) {
-        throw new Error(
-          `rippled HTTP ${resp.status} from ${rippledUrl} ` +
-            `(redirects are refused; user must point at a trusted node)`,
-        );
-      }
-      json = await resp.json();
+      result = await requestRippled(rippledUrl, { method: 'account_tx', params: [params] }, signal, onRetry);
     } catch (err) {
-      if (signal && signal.aborted) return;
+      if (signal?.aborted) return;
       throw err;
     }
 
-    const result = json?.result;
-    if (!result) {
-      throw new Error('rippled account_tx response missing result');
-    }
-    if (result.status === 'error') {
-      throw new Error(`rippled error: ${result.error}`);
-    }
-
+    if (signal?.aborted) return;
     const txs = Array.isArray(result.transactions) ? result.transactions : [];
     for (const wrapper of txs as Array<{
       tx?: RippledTxResult;
@@ -262,5 +226,9 @@ export async function* accountTx(
       return;
     }
     marker = result.marker;
+    try { await abortableDelay(1000, signal); } catch (err) {
+      if (signal?.aborted) return;
+      throw err;
+    }
   }
 }

@@ -72,6 +72,57 @@ describe('verifyVideo orchestrator', () => {
     expect(['not-found', 'attested-on-chain']).toContain(result!.tier3.status);
   });
 
+
+  it('indexes a signed AccountSet anchor used by the production publisher', async () => {
+    const bytes = new Uint8Array([0x61, 0x62, 0x63]);
+    const sha = await sha256HexOf(bytes);
+    const fixture = await makeAnchorFixture(sha);
+    const tx: Record<string, unknown> = { ...fixture.rippledTx, TransactionType: 'AccountSet' };
+    delete tx['Destination'];
+    spyOn(window, 'fetch').and.callFake(async (_url, init) => {
+      const body = JSON.parse(init!.body as string);
+      return new Response(JSON.stringify({ result: body.method === 'account_tx'
+        ? { transactions: [{ tx, validated: true, ledger_index: 1000 }] }
+        : tx }));
+    });
+    const events = await lastValueFrom(verifyVideo({
+      file: new File([bytes], 'evidence.mp4'),
+      trustAnchorBundle: { xrplAccount: TESTNET_ACCOUNT, registry: await makeRegistry() },
+      rippledUrl: TEST_RIPPLED,
+    }).pipe(toArray()));
+    const final = events.find(e => e.type === 'result') as VerificationResult;
+    expect(final.tier1.status).toBe('verified');
+    expect(final.tier2.status).toBe('verified');
+  });
+
+
+  it('rejects a modified manifest in an AccountSet anchor', async () => {
+    const bytes = new Uint8Array([0x61, 0x62, 0x63]);
+    const sha = await sha256HexOf(bytes);
+    const fixture = await makeAnchorFixture(sha);
+    const tx: Record<string, unknown> = JSON.parse(JSON.stringify(fixture.rippledTx));
+    tx['TransactionType'] = 'AccountSet'; delete tx['Destination'];
+    const memos = tx['Memos'] as Array<{ Memo: { MemoData: string } }>;
+    const original = fixture.manifest;
+    const changed = JSON.stringify({ ...original, vehicleId: 'changed' });
+    memos[1].Memo.MemoData = Array.from(new TextEncoder().encode(changed), b => b.toString(16).padStart(2, '0')).join('');
+    spyOn(window, 'fetch').and.callFake(async (_url, init) => {
+      const body = JSON.parse(init!.body as string);
+      return new Response(JSON.stringify({ result: body.method === 'account_tx'
+        ? { transactions: [{ tx, validated: true, ledger_index: 1000 }] }
+        : tx }));
+    });
+    const events = await lastValueFrom(verifyVideo({
+      file: new File([bytes], 'changed.mp4'),
+      trustAnchorBundle: { xrplAccount: TESTNET_ACCOUNT, registry: await makeRegistry() },
+      rippledUrl: TEST_RIPPLED,
+    }).pipe(toArray()));
+    const final = events.find(e => e.type === 'result') as VerificationResult;
+    expect(final.tier1.status).toBe('invalid');
+    expect(final.tier1.reason).toBe('bundle-hash-mismatch');
+    expect(final.tier2.status).toBe('not-applicable');
+  });
+
   it('Tier-1 not-found when no channel match anywhere', async () => {
     spyOn(window, 'fetch').and.resolveTo(
       new Response(

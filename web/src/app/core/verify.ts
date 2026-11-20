@@ -31,6 +31,7 @@ import {
 } from './scan-cache';
 import {
   accountTx,
+  fetchTransaction,
   type AccountTxYield,
   type RippledTxResult,
 } from './xrpl';
@@ -234,7 +235,7 @@ async function scanForChannel(
   })) {
     progress.ledgersWalked += 1;
     progress.cursor = wrapped.ledger_index;
-    const indexed = await indexAnchorOrUpgrade(wrapped, cache);
+    const indexed = await indexAnchorOrUpgrade(wrapped, cache, account);
     if (indexed) progress.txsDecoded += 1;
     sub.next({
       type: 'progress',
@@ -271,10 +272,15 @@ async function scanForChannel(
 async function indexAnchorOrUpgrade(
   wrapped: AccountTxYield,
   cache: Awaited<ReturnType<typeof openScanCache>>,
+  expectedAccount: string,
 ): Promise<boolean> {
   const tx = wrapped.tx;
-  if (tx.TransactionType !== 'Payment') return false;
-  if (typeof tx.Account !== 'string' || tx.Account !== tx.Destination) return false;
+  if (tx.Account !== expectedAccount) return false;
+  // Existing production anchors use AccountSet. The same strict memo,
+  // fingerprint and registered-key signature checks apply to both carriers.
+  const selfPayment = tx.TransactionType === 'Payment' && tx.Destination === tx.Account;
+  const existingAccountSet = tx.TransactionType === 'AccountSet' && tx.Destination === undefined;
+  if (!selfPayment && !existingAccountSet) return false;
   const memos = (tx.Memos as unknown[]) ?? [];
   if (!Array.isArray(memos)) return false;
 
@@ -338,27 +344,7 @@ async function fetchAnchorTx(
   rippledUrl: string,
   signal: AbortSignal,
 ): Promise<RippledTxResult> {
-  const body = {
-    method: 'tx',
-    params: [{ transaction: txHash, binary: false }],
-  };
-  const resp = await fetch(rippledUrl, {
-    method: 'POST',
-    headers: { 'content-type': 'application/json' },
-    body: JSON.stringify(body),
-    redirect: 'manual',
-    signal,
-  });
-  if (resp.status !== 200) {
-    throw new Error(
-      `rippled HTTP ${resp.status} from ${rippledUrl} (anchor tx fetch)`,
-    );
-  }
-  const json = (await resp.json()) as { result?: RippledTxResult };
-  if (!json.result) {
-    throw new Error('rippled response missing result on anchor tx fetch');
-  }
-  return json.result;
+  return fetchTransaction(txHash, { rippledUrl, signal });
 }
 
 interface Tier1And2 {

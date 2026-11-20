@@ -141,7 +141,7 @@ export const TRUST_ANCHOR_LOADER = new InjectionToken<
           role="alert"
           class="rounded-lg border border-red-200 bg-red-50 p-6 text-red-900"
         >
-          <h2 class="text-lg font-semibold">Verification failed</h2>
+          <h2 class="text-lg font-semibold">Verification could not be completed</h2>
           <p class="mt-1 text-sm">{{ errorMessage() }}</p>
           <button
             type="button"
