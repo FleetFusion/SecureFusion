@@ -51,6 +51,30 @@ test.describe('SecureFusion Verifier — verify page', () => {
       txByHash.set(t.tx.hash, t);
     }
 
+    // Use the conformance account and public test key together. The real
+    // bundled trust anchor belongs to production and must not trust demo txs.
+    const fixtureAccount = accountTxFixture.result.transactions[0].tx['Account'];
+    const fixtureKey = '03a107bff3ce10be1d70dd18e74bc09967e4d6309ba50d5f1ddc8664125531b8';
+    await page.route('**/assets/trust-anchors/platform-account.json', async (route) => {
+      await route.fulfill({ json: {
+        xrplAccount: fixtureAccount,
+        network: 'testnet',
+        specVersion: 'SF1',
+        bitcoinProofMode: 'xrpl-sf1ots',
+        registry: [{
+          organisation: 'TESTNET — DEMO ONLY',
+          xrplAccount: fixtureAccount,
+          appPublicKey: fixtureKey,
+          network: 'testnet',
+          specVersion: 'SF1',
+          certifiedAt: '2026-04-01T00:00:00.000Z',
+          revokedAt: null,
+          active: true,
+          bitcoinProofMode: 'xrpl-sf1ots',
+        }],
+      } });
+    });
+
     // Match any rippled-style POST. The default rippled URL in
     // SettingsService is https://xrplcluster.com.
     await page.route('**://xrplcluster.com/**', async (route) => {
@@ -98,7 +122,7 @@ test.describe('SecureFusion Verifier — verify page', () => {
     await expect(githubLink).toHaveAttribute('rel', /noopener/);
   });
 
-  test('drag-drop a SecureFusion-anchored video → all three tiers verified', async ({
+  test('drag-drop a SecureFusion-anchored video → hash and signature verified', async ({
     page,
   }) => {
     // The conformance fixture's single-channel manifest declares one
