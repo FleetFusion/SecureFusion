@@ -17,8 +17,8 @@ import { RouterLink } from '@angular/router';
       <header class="space-y-1">
         <h1 class="text-2xl font-bold text-gray-900">About this verifier</h1>
         <p class="text-sm text-gray-600">
-          A no-backend tool that proves a SecureFusion-anchored video is
-          authentic by reading XRPL and Bitcoin directly.
+          An independent browser tool that checks whether a video matches its
+          signed SecureFusion record and public blockchain evidence.
         </p>
       </header>
 
@@ -26,7 +26,7 @@ import { RouterLink } from '@angular/router';
         <h2 class="text-lg font-semibold text-gray-900">Three-tier verification</h2>
         <p>
           Every SecureFusion video is anchored on the XRP Ledger as a
-          three-memo Payment, signed by the issuing platform's public
+          three-memo transaction, signed by the issuing platform's public
           key, and (optionally) attested in Bitcoin via OpenTimestamps.
           This SPA verifies all three independently:
         </p>
@@ -42,18 +42,20 @@ import { RouterLink } from '@angular/router';
             (bundled as a trust anchor).
           </li>
           <li>
-            <strong>Bitcoin-attested.</strong> The SF1.ots upgrade tx
-            (a 4-memo follow-up) carries an OpenTimestamps proof that
-            anchors the bundle into a Bitcoin block.
+            <strong>Bitcoin-attested.</strong> An OpenTimestamps proof and Merkle branch link the signed event
+            to a Bitcoin block. Proofs can come from a public HTTPS endpoint,
+            an XRP upgrade transaction, or a file you provide. Bitcoin block
+            data is checked against independent public providers.
           </li>
         </ol>
 
-        <h2 class="text-lg font-semibold text-gray-900">No upload, no backend</h2>
+        <h2 class="text-lg font-semibold text-gray-900">Your video stays on your device</h2>
         <p>
-          The video file never leaves your browser. Hashing, scanning,
-          and signature verification all happen client-side. The only
-          network requests are read-only XRPL JSON-RPC calls to the
-          public rippled endpoint of your choice.
+          The video file never leaves your browser. Hashing, signature checks,
+          Merkle proofs and timestamp checks run locally. Read-only network
+          requests fetch XRP records, public cryptographic proof data and
+          Bitcoin block headers. For FleetFusion proofs, only the public
+          bundle hash is sent to api.fleetfusion.ai; no video or login is sent.
         </p>
 
         <h2 class="text-lg font-semibold text-gray-900">Open source</h2>

@@ -123,7 +123,7 @@ describe('verifyVideo orchestrator', () => {
   });
 
   it('Tier-1 not-found when no channel match anywhere', async () => {
-    spyOn(window, 'fetch').and.resolveTo(
+    spyOn(window, 'fetch').and.callFake(async () =>
       new Response(
         JSON.stringify({
           result: {
@@ -174,7 +174,7 @@ describe('verifyVideo orchestrator', () => {
     });
     cache.close();
 
-    spyOn(window, 'fetch').and.resolveTo(
+    spyOn(window, 'fetch').and.callFake(async () =>
       new Response(JSON.stringify({ result: tamperedTx })),
     );
 
@@ -197,8 +197,17 @@ describe('verifyVideo orchestrator', () => {
     expect(final!.tier2.status).toBe('not-applicable');
   });
 
+  it('finds a recent video from one live history page without a cached anchor or an old-history crawl', async () => {
+    const bytes = new Uint8Array([0x61,0x62,0x63]); const fixture = await makeAnchorFixture(await sha256HexOf(bytes));
+    const history: Array<Record<string,unknown>>=[];
+    spyOn(window,'fetch').and.callFake(async (_url,init)=>{const body=JSON.parse(init!.body as string);if(body.method==='account_tx'){history.push(body.params[0]);return new Response(JSON.stringify({result:{transactions:[{tx:fixture.rippledTx,validated:true,ledger_index:1000}],marker:{ledger:999}}}));}return new Response(JSON.stringify({result:fixture.rippledTx}));});
+    const registry=(await makeRegistry()).map(entry=>({...entry,bitcoinProofMode:'none' as const}));
+    const events=await lastValueFrom(verifyVideo({file:new File([bytes],'recent.mp4'),trustAnchorBundle:{xrplAccount:TESTNET_ACCOUNT,registry},rippledUrl:TEST_RIPPLED}).pipe(toArray()));
+    const final=events.find(e=>e.type==='result') as VerificationResult;expect(final.tier1.status).toBe('verified');expect(final.tier2.status).toBe('verified');expect(history.length).toBe(1);expect(history[0]['forward']).toBeFalse();
+  });
+
   it('emits hashing progress frames before tier results', async () => {
-    spyOn(window, 'fetch').and.resolveTo(
+    spyOn(window, 'fetch').and.callFake(async () =>
       new Response(
         JSON.stringify({
           result: { transactions: [], marker: undefined },
@@ -224,7 +233,7 @@ describe('verifyVideo orchestrator', () => {
   });
 
   it('emits a result event as the last frame', async () => {
-    spyOn(window, 'fetch').and.resolveTo(
+    spyOn(window, 'fetch').and.callFake(async () =>
       new Response(
         JSON.stringify({
           result: { transactions: [], marker: undefined },
@@ -270,5 +279,5 @@ describe('Bitcoin upgrade discovery after an XRP cache hit', () => {
     const result=await runUpgrade(false); expect(result.tier1.status).toBe('verified'); expect(result.tier2.status).toBe('verified'); expect(result.tier3.status).toBe('attested-on-chain'); expect(result.tier3.upgrade?.txHash).toBe('B'.repeat(64)); expect(result.tier3.reason).toContain('pending');
   });
   it('rejects a changed upgrade signature', async () => { const result=await runUpgrade(true); expect(result.tier3.status).toBe('invalid'); expect(result.tier1.status).toBe('verified'); });
-  it('preserves XRP results and reports an incomplete Bitcoin search on service failure', async () => { const result=await runUpgrade(false,true);expect(result.tier3.status).toBe('unavailable');expect(result.tier1.status).toBe('verified'); });
+  it('preserves XRP results and reports an incomplete Bitcoin search on service failure', async () => { const result=await runUpgrade(false,true);expect(result.tier3.status).toBe('unavailable');expect(result.tier1.status).toBe('verified'); },15000);
 });

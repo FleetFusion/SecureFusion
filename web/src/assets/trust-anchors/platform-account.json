@@ -3,7 +3,7 @@
   "xrplAccount": "rNY2jMzs3kNZ5UswvXfj48HSpMiMGSGAkG",
   "network": "mainnet",
   "specVersion": "SF1",
-  "bitcoinProofMode": "xrpl-sf1ots",
+  "bitcoinProofMode": "https",
   "registry": [
     {
       "organisation": "FleetFusion",
@@ -14,7 +14,8 @@
       "certifiedAt": "2026-05-05T00:00:00.000Z",
       "revokedAt": null,
       "active": true,
-      "bitcoinProofMode": "xrpl-sf1ots"
+      "bitcoinProofMode": "https",
+      "bitcoinProofUrlTemplate": "https://api.fleetfusion.ai/api/secure-fusion/proofs/{bundleHash}"
     }
   ]
 }

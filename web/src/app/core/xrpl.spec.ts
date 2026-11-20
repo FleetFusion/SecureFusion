@@ -127,3 +127,30 @@ describe('accountTx', () => {
     expect(yields[0].tx.hash).toBe('B');
   });
 });
+
+describe('Public ledger connection fallback',()=>{
+ const rpcResponse=(body:unknown)=>({status:200,headers:new Headers(),json:async()=>body}) as Response;
+ beforeEach(()=>jasmine.clock().install());afterEach(()=>jasmine.clock().uninstall());
+ async function flush(){for(let i=0;i<30;i++)await Promise.resolve();}
+ it('uses the official cluster alias after primary connection failures',async()=>{
+  const requests=spyOn(window,'fetch').and.callFake(async url=>{if(String(url).includes('xrplcluster.com'))throw new TypeError('offline');return rpcResponse({result:{validated:true,hash:'A'.repeat(64)}});});
+  const pending=fetchTransaction('A'.repeat(64));for(const delay of [1250,2250,4250]){await flush();jasmine.clock().tick(delay);}expect((await pending).validated).toBeTrue();expect(String(requests.calls.mostRecent().args[0])).toBe('https://xrpl.ws/');
+ });
+ it('never changes a user-selected custom ledger node or network',async()=>{
+  const requests=spyOn(window,'fetch').and.rejectWith(new TypeError('offline'));const pending=fetchTransaction('A'.repeat(64),{rippledUrl:'https://custom.testnet.example'}).catch(error=>error);
+  for(const delay of [1250,2250,4250]){await flush();jasmine.clock().tick(delay);}await pending;expect(requests.calls.allArgs().every(args=>args[0]==='https://custom.testnet.example')).toBeTrue();
+ });
+ it('restarts pagination on the alias from the inclusive boundary without reusing the marker or losing records',async()=>{
+  const requests:Array<{url:string,params:Record<string,unknown>}>=[];let primary=0;
+  spyOn(window,'fetch').and.callFake(async(url,init)=>{const params=JSON.parse(init!.body as string).params[0];requests.push({url:String(url),params});
+   if(String(url).includes('xrplcluster.com')){if(primary++===0)return rpcResponse({result:{transactions:[{tx:{hash:'first'},validated:true,ledger_index:100}],marker:{ledger:100,seq:1}}});throw new TypeError('offline');}
+   return rpcResponse({result:{transactions:[{tx:{hash:'first'},validated:true,ledger_index:100},{tx:{hash:'same-ledger-unseen'},validated:true,ledger_index:100},{tx:{hash:'next'},validated:true,ledger_index:101}]}});
+  });
+  const hashes:string[]=[];const pending=(async()=>{for await(const row of accountTx('rTEST',{fromLedger:50}))hashes.push(row.tx.hash!);})();
+  await flush();jasmine.clock().tick(1000);for(const delay of [1250,2250,4250]){await flush();jasmine.clock().tick(delay);}await pending;
+  expect(hashes).toEqual(['first','same-ledger-unseen','next']);const alias=requests.at(-1)!;expect(alias.url).toBe('https://xrpl.ws/');expect(alias.params['marker']).toBeUndefined();expect(alias.params['ledger_index_min']).toBe(100);
+ });
+ it('limits the recent probe to one page even if the ledger advertises more history',async()=>{
+  const requests=spyOn(window,'fetch').and.resolveTo(rpcResponse({result:{transactions:[{tx:{hash:'recent'},validated:true,ledger_index:100}],marker:{ledger:99}}}));let count=0;for await(const _ of accountTx('rTEST',{forward:false,maxPages:1}))count++;expect(count).toBe(1);expect(requests).toHaveBeenCalledTimes(1);
+ });
+});

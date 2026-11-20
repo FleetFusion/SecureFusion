@@ -1,6 +1,6 @@
 /** Read-only ledger requests. A busy node is an availability issue, not a failed proof. */
 export class RippledUnavailableError extends Error {
-  constructor(message = 'The ledger service is temporarily unavailable. Verification has not completed. Please try again shortly.') {
+  constructor(message = 'The ledger service is temporarily unavailable. Verification has not completed. Please try again shortly.', readonly reason: 'connection' | 'busy' = 'busy') {
     super(message);
     this.name = 'RippledUnavailableError';
   }
@@ -57,12 +57,14 @@ export async function requestRippled<T extends Record<string, unknown>>(
     let retryable = false;
     let message = '';
     let delay = 0;
+    let failureKind: 'connection' | 'busy' = 'busy';
     try {
       response = await fetch(url, {
         method: 'POST', headers: { 'content-type': 'application/json' },
         body: JSON.stringify(body), redirect: 'manual', signal: controller.signal,
       });
-      retryable = [429, 502, 503, 504].includes(response.status);
+      retryable = [408, 429, 500, 502, 503, 504].includes(response.status);
+      if (response.status !== 429) failureKind = 'connection';
       if (response.status === 200) {
         const json = await response.json() as { result?: typeof result };
         result = json.result;
@@ -72,6 +74,7 @@ export async function requestRippled<T extends Record<string, unknown>>(
           if (result.status === 'error' || result.error) throw new Error(`rippled error: ${result.error}`);
           return result;
         }
+        failureKind = 'busy';
         message = result.error_message ?? '';
       } else if (!retryable) {
         throw new Error(`rippled HTTP ${response.status} from ${url} (redirects are refused; user must point at a trusted node)`);
@@ -79,14 +82,19 @@ export async function requestRippled<T extends Record<string, unknown>>(
       delay = retryDelayMs(response.headers.get('Retry-After'), message, attempt);
     } catch (error) {
       if (signal?.aborted) throw new DOMException('aborted', 'AbortError');
-      if (controller.signal.aborted || error instanceof TypeError) throw new RippledUnavailableError();
-      throw error;
+      if (controller.signal.aborted || error instanceof TypeError) {
+        retryable = true;
+        failureKind = 'connection';
+        delay = retryDelayMs(null, '', attempt);
+      } else {
+        throw error;
+      }
     } finally {
       clearTimeout(timeout);
       signal?.removeEventListener('abort', onAbort);
     }
     // Do not retry indefinitely, and never shorten a server-requested wait.
-    if (attempt === 3 || delay > 60000) throw new RippledUnavailableError();
+    if (attempt === 3 || delay > 60000) throw new RippledUnavailableError(undefined, failureKind);
     onRetry?.({ waitMs: delay, attempt: attempt + 1 });
     await abortableDelay(delay, signal);
   }
