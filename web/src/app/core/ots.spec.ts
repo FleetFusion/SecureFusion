@@ -40,4 +40,13 @@ describe('OpenTimestamps Bitcoin verification', () => {
     for (const bytes of [proof().slice(0,-1), new Uint8Array(0), new Uint8Array([...proof(),0]), new Uint8Array(65537)]) expect((await verifyOtsProof(bytes, fixture.digest)).status).toBe('invalid');
   });
   it('rejects a malformed digest', async () => { expect((await verifyOtsProof(proof(), 'short')).status).toBe('invalid'); });
+  it('uses a third independent operator if one primary service is unavailable', async () => {
+    spyOn(window,'fetch').and.callFake(async input => {
+      const url=String(input);
+      if(url.startsWith('https://mempool.space')) throw new TypeError('unavailable');
+      if(url.startsWith('https://api.blockcypher.com')) return new Response(JSON.stringify({height:358391,hash:fixture.blocks[0].blockHash,chain:'BTC.main'}));
+      return new Response(url.endsWith('/header')?fixture.blocks[0].header:fixture.blocks[0].blockHash);
+    });
+    expect((await verifyOtsProof(proof(),fixture.digest)).status).toBe('verified');
+  });
 });
