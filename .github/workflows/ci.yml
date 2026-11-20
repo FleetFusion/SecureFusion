@@ -156,7 +156,7 @@ jobs:
   web-e2e:
     name: Verifier SPA e2e (Playwright)
     needs: web-build
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     defaults:
       run:
         working-directory: web
