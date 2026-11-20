@@ -1,7 +1,7 @@
 /**
  * Trust-anchor loader.
  *
- * The SPA bundles the FleetFusion testnet trust anchor in
+ * The SPA bundles the FleetFusion mainnet trust anchor in
  * `assets/trust-anchors/platform-account.json` plus per-key files in
  * `assets/trust-anchors/keys/<keyId>.json`. The loader fetches them
  * at runtime so the user can swap the URL via the settings cog

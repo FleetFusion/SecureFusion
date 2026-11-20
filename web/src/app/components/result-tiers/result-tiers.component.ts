@@ -191,6 +191,10 @@ import type { Network, VerificationResult } from '../../core/verifier-types';
               <dl class="grid grid-cols-1 gap-2 sm:grid-cols-[max-content_1fr]">
                 <dt class="font-medium text-gray-500">Block height</dt>
                 <dd class="tabular-nums">{{ bitcoin.blockHeight }}</dd>
+                @if (bitcoin.blockHash) {
+                  <dt class="font-medium text-gray-500">Block hash</dt>
+                  <dd class="break-all"><a [href]="'https://blockstream.info/block/' + bitcoin.blockHash" target="_blank" rel="noopener noreferrer" class="font-mono text-ff-green hover:underline">{{ bitcoin.blockHash }}</a></dd>
+                }
                 <dt class="font-medium text-gray-500">Block time</dt>
                 <dd>{{ bitcoin.blockTimeUtc ?? '—' }}</dd>
               </dl>
@@ -254,7 +258,7 @@ export class ResultTiersComponent {
   readonly tier3Color = computed<TierColor>(() => {
     const s = this.result().tier3.status;
     if (s === 'verified') return 'green';
-    if (s === 'attested-on-chain') return 'amber';
+    if (s === 'attested-on-chain' || s === 'unavailable') return 'amber';
     if (s === 'invalid') return 'red';
     return 'grey';
   });
@@ -272,6 +276,7 @@ export class ResultTiersComponent {
   readonly tier3ReasonText = computed(() => {
     const t3 = this.result().tier3;
     if (t3.reason) return t3.reason;
+    if (t3.status === 'verified' && t3.proofSource === 'local') return 'The supplied proof was checked locally against this signed event and a confirmed Bitcoin block.';
     if (t3.status === 'not-provided')
       return 'This issuer does not provide a Bitcoin attestation.';
     if (t3.status === 'attested-on-chain')
@@ -346,13 +351,15 @@ function labelForTier3(status: string): string {
     case 'verified':
       return 'Confirmed in Bitcoin block';
     case 'attested-on-chain':
-      return 'Attested on XRPL (Bitcoin proof deferred)';
+      return 'Proof published; Bitcoin check incomplete';
+    case 'unavailable':
+      return 'Bitcoin check incomplete';
     case 'verified-via-https':
       return 'Verified via HTTPS proof';
     case 'not-provided':
       return 'Not provided by issuer';
     case 'not-found':
-      return 'No upgrade tx found';
+      return 'Public Bitcoin proof not found';
     case 'not-applicable':
       return 'Skipped (earlier tier failed)';
     case 'invalid':

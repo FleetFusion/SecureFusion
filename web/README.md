@@ -97,3 +97,12 @@ See [../CONTRIBUTING.md](../CONTRIBUTING.md) for the contributor workflow, code 
 ## License
 
 This SPA is part of the SecureFusion code distribution and is licensed under the [Apache 2.0 License](../LICENSE-CODE).
+
+
+### Bitcoin proof verification
+
+The browser searches for later SF1.ots upgrades even when the original XRP anchor is cached. It re-fetches the upgrade, checks its registered-account signature, replays the event Merkle branch and OpenTimestamps operations, and checks the final commitment against a Bitcoin block header. Block height/hash agreement is required from Blockstream and mempool.space; the header hash and proof of work are checked locally. These public services supply the main-chain view; this browser is not a full Bitcoin node. Service failures are shown as incomplete checks, never as a verified Bitcoin timestamp.
+
+If the issuer has not published a reachable SF1.ots upgrade, a customer can choose **Add Bitcoin proof file** after selecting a video. The JSON format is `{ bundleHash, merkleProofJson, otsProofBase64 }`: the Merkle branch is a JSON string and the proof bytes are base64. The file is untrusted input and must cryptographically connect the signed XRP event bundle to a confirmed Bitcoin block. An issuer's status flag or a block number alone is never sufficient. No proof or video is uploaded; network requests contain only public ledger account/transaction identifiers and Bitcoin block heights/hashes.
+
+The browser accepts both raw calendar timestamp proofs and standard detached .ots bytes inside the proof bundle. Inputs are bounded by byte count, operation count, nesting depth and payload/message lengths. The CSP explicitly permits the two Bitcoin services and WebAssembly hashing, without allowing arbitrary JavaScript evaluation.

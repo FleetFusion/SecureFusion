@@ -1,7 +1,7 @@
 {
   "$comment": "FleetFusion platform trust anchor. AccountKeyId=platform-account-2026-04, AppSigningKeyId=platform-2026-04. AppSigningExpectedPublicKey is shipped here in lowercase hex (decoded from base64 zA0SSqCMwbWwiVClF3JNflmW2FDyQqYxgsYrz/DRg+A=).",
   "xrplAccount": "rNY2jMzs3kNZ5UswvXfj48HSpMiMGSGAkG",
-  "network": "testnet",
+  "network": "mainnet",
   "specVersion": "SF1",
   "bitcoinProofMode": "xrpl-sf1ots",
   "registry": [
@@ -9,7 +9,7 @@
       "organisation": "FleetFusion",
       "xrplAccount": "rNY2jMzs3kNZ5UswvXfj48HSpMiMGSGAkG",
       "appPublicKey": "cc0d124aa08cc1b5b08950a517724d7e5996d850f242a63182c62bcff0d183e0",
-      "network": "testnet",
+      "network": "mainnet",
       "specVersion": "SF1",
       "certifiedAt": "2026-05-05T00:00:00.000Z",
       "revokedAt": null,

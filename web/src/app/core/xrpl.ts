@@ -30,6 +30,8 @@ export interface FetchTransactionOptions {
 export interface AccountTxOptions {
   rippledUrl?: string;
   fromLedger?: number;
+  /** Newest-first discovery is used to find later Bitcoin proof upgrades. */
+  forward?: boolean;
   pageSize?: number;
   onRetry?: (notice: RetryNotice) => void;
   signal?: AbortSignal;
@@ -170,6 +172,7 @@ export async function* accountTx(
   const {
     rippledUrl = DEFAULT_RIPPLED_URL,
     fromLedger = -1,
+    forward = true,
     pageSize = 200,
     onRetry,
     signal,
@@ -184,7 +187,7 @@ export async function* accountTx(
       ledger_index_min: fromLedger,
       ledger_index_max: -1,
       binary: false,
-      forward: true,
+      forward,
       limit: pageSize,
     };
     if (marker !== undefined) params['marker'] = marker;

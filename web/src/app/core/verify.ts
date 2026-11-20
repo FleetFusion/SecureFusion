@@ -19,6 +19,8 @@ import { Observable, type Subscriber } from 'rxjs';
 import { sha256File } from './hash';
 import { verifyEd25519 } from './ed25519';
 import { verifyOtsProof } from './ots';
+import { applyMerkleBranch } from './merkle';
+import { verifySuppliedBitcoinProof } from './bitcoin-proof';
 import {
   getChannelEntry,
   getOtsEntry,
@@ -41,7 +43,7 @@ import {
   extractOtsUpgradeMemos,
 } from './verifier/memo';
 import { findByAccount } from './verifier/registry';
-import { bytesToHex, concatBytes, hexToBytes, utf8Decode } from './verifier/bytes';
+import { bytesToHex, concatBytes, hexToBytes, utf8Decode, utf8Encode } from './verifier/bytes';
 import type {
   AnchorRef,
   Tier1Result,
@@ -118,6 +120,7 @@ async function runVerify(
   if (opts.forceRescan) await purgeScanCache(account, rippledUrl);
   const cache = await openScanCache(account, rippledUrl);
 
+  try {
   // Cache hit? Shortcut the scan loop.
   let channelHit = await getChannelEntry(cache, fileSha256);
   if (channelHit) {
@@ -135,7 +138,6 @@ async function runVerify(
 
   if (!channelHit) {
     finishWithoutMatch(sub, fileName, fileSizeBytes, fileSha256, startedAt);
-    cache.close();
     return;
   }
 
@@ -151,6 +153,8 @@ async function runVerify(
   let tier3: Tier3Result;
   if (tier1and2.tier1.status !== 'verified' || tier1and2.tier2.status !== 'verified') {
     tier3 = { status: 'not-applicable' };
+  } else if (opts.bitcoinProof) {
+    tier3 = await verifySuppliedBitcoinProof(opts.bitcoinProof, tier1and2.bundleHashHex!, signal);
   } else {
     tier3 = await runTier3(
       tier1and2.bundleHashHex!,
@@ -159,11 +163,10 @@ async function runVerify(
       sub,
       signal,
       rippledUrl,
+      channelHit.ledgerIndex,
     );
   }
   sub.next({ type: 'progress', kind: 'tier3', result: tier3 });
-
-  cache.close();
 
   sub.next({
     type: 'result',
@@ -177,6 +180,7 @@ async function runVerify(
     elapsedMs: Date.now() - startedAt,
   });
   sub.complete();
+  } finally { cache.close(); }
 }
 
 function finishWithoutMatch(
@@ -501,6 +505,7 @@ async function runTier3(
   _sub: Subscriber<VerificationEvent>,
   _signal: AbortSignal,
   _rippledUrl: string,
+  anchorLedger: number,
 ): Promise<Tier3Result> {
   const mode = registryEntry.bitcoinProofMode;
   if (mode === 'none') {
@@ -528,49 +533,47 @@ async function runTier3(
     };
   }
 
-  // xrpl-sf1ots: look up the OTS upgrade in the cache. The scan loop
-  // already indexed every 4-memo tx it walked past; if it isn't here,
-  // the upgrade hasn't been published (or hasn't been scanned yet).
-  const otsCacheHit = await getOtsEntry(cache, bundleHashHex);
+  // A cached original anchor says nothing about a later Bitcoin publication.
+  // Search the public account history after the anchor whenever the upgrade is absent.
+  let otsCacheHit = await getOtsEntry(cache, bundleHashHex);
   if (!otsCacheHit) {
-    return {
-      status: 'not-found',
-      reason: 'no-sf1-ots-upgrade-found-in-cache',
-      bitcoinProofMode: 'xrpl-sf1ots',
-    };
+    try {
+      let walked = 0;
+      for await (const wrapped of accountTx(registryEntry.xrplAccount, {
+        rippledUrl: _rippledUrl, fromLedger: Math.max(0, anchorLedger), forward: false, signal: _signal,
+      })) {
+        await indexAnchorOrUpgrade(wrapped, cache, registryEntry.xrplAccount);
+        _sub.next({ type: 'progress', kind: 'scanning', ledgersWalked: ++walked, txsDecoded: walked, cursor: wrapped.ledger_index });
+        otsCacheHit = await getOtsEntry(cache, bundleHashHex);
+        if (otsCacheHit) break;
+      }
+    } catch (error) {
+      if (_signal.aborted) throw error;
+      return { status: 'unavailable', bitcoinProofMode: mode, reason: 'The public Bitcoin proof search could not be completed. XRP and signature checks remain valid. Please retry.' };
+    }
   }
-
-  // Fetch the upgrade tx so we can replay the merkle branch + OTS proof.
-  // The full implementation walks `applyMerkleBranch(bundleHash, branch)`
-  // and feeds the result into `verifyOtsProof`. Phase B keeps the
-  // wrapper deferred — see ots.ts. The orchestrator surfaces
-  // `attested-on-chain` whenever the upgrade tx exists and has a
-  // signature-valid memo set, matching the Node reference's behaviour
-  // when the OTS library isn't installed.
-  const upgrade = {
-    txHash: otsCacheHit.txHash,
-    ledgerIndex: otsCacheHit.ledgerIndex,
-  };
-  // The OTS library is optional (see ots.ts). When absent, the call
-  // returns `{ status: 'unresolved', reason: 'ots-library-not-installed' }`
-  // which we map to `attested-on-chain` so the Phase C UI can render
-  // a partial green tile rather than red. This matches the Node
-  // reference's reasoning in `verifyXrplSf1OtsTier` step (4).
-  const otsResult = await verifyOtsProof(new Uint8Array(0), bundleHashHex);
-  if (otsResult.status === 'verified') {
-    return {
-      status: 'verified',
-      upgrade,
-      merkleRoot: bundleHashHex,
-      bitcoin: otsResult.bitcoin,
-      bitcoinProofMode: 'xrpl-sf1ots',
-    };
+  if (_signal.aborted) throw new DOMException('aborted', 'AbortError');
+  if (!otsCacheHit) return { status: 'not-found', bitcoinProofMode: mode,
+    reason: 'No Bitcoin upgrade proof has been published to this XRPL account for this video in the checked history. A platform status alone cannot verify the Bitcoin timestamp.' };
+  const upgrade = { txHash: otsCacheHit.txHash, ledgerIndex: otsCacheHit.ledgerIndex };
+  let tx: RippledTxResult;
+  try { tx = await fetchTransaction(upgrade.txHash, { rippledUrl: _rippledUrl, signal: _signal }); }
+  catch (error) { if (_signal.aborted) throw error; return { status: 'unavailable', upgrade, reason: 'The Bitcoin upgrade transaction could not be fetched. Please retry.', bitcoinProofMode: mode }; }
+  const carrier = tx.Account === registryEntry.xrplAccount &&
+    ((tx.TransactionType === 'Payment' && tx.Destination === tx.Account) || (tx.TransactionType === 'AccountSet' && tx.Destination === undefined));
+  if (!carrier) return { status: 'invalid', upgrade, reason: 'Bitcoin upgrade is not from the registered platform account.', bitcoinProofMode: mode };
+  const memos = extractOtsUpgradeMemos(tx.Memos);
+  if (!memos.ok) return { status: 'invalid', upgrade, reason: memos.reason, bitcoinProofMode: mode };
+  try {
+    if (decodeBundleMemo(memos.bundle).bundleHash !== bundleHashHex) throw new Error('Bitcoin upgrade belongs to a different event bundle.');
+    const sigOk = await verifyEd25519({ message: concatBytes(memos.bundle, utf8Encode(memos.merkleProof), memos.ots), signature: memos.sig, publicKey: hexToBytes(registryEntry.appPublicKey) });
+    if (!sigOk) throw new Error('Bitcoin upgrade signature is invalid.');
+    const merkleRoot = await applyMerkleBranch(bundleHashHex, JSON.parse(memos.merkleProof));
+    const result = await verifyOtsProof(memos.ots, merkleRoot, _signal);
+    if (result.status === 'verified') return { status: 'verified', upgrade, merkleRoot, bitcoin: result.bitcoin, bitcoinProofMode: mode };
+    return { status: result.status === 'invalid' ? 'invalid' : 'attested-on-chain', upgrade, merkleRoot, reason: result.reason, bitcoinProofMode: mode };
+  } catch (error) {
+    if (_signal.aborted) throw error;
+    return { status: 'invalid', upgrade, reason: (error as Error).message, bitcoinProofMode: mode };
   }
-  return {
-    status: 'attested-on-chain',
-    upgrade,
-    merkleRoot: bundleHashHex,
-    reason: otsResult.reason,
-    bitcoinProofMode: 'xrpl-sf1ots',
-  };
 }

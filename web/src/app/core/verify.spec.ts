@@ -11,6 +11,7 @@ import {
   TESTNET_ACCOUNT,
   makeAnchorFixture,
   makeRegistry,
+  makeUpgradeFixture,
 } from './test-fixtures';
 import type { VerificationEvent, VerificationResult } from './verifier-types';
 import { verifyVideo } from './verify';
@@ -46,9 +47,7 @@ describe('verifyVideo orchestrator', () => {
     });
     cache.close();
 
-    spyOn(window, 'fetch').and.resolveTo(
-      new Response(JSON.stringify({ result: fixture.rippledTx })),
-    );
+    spyOn(window, 'fetch').and.callFake(async (_url, init) => new Response(JSON.stringify({ result: JSON.parse(init!.body as string).method === 'tx' ? fixture.rippledTx : { transactions: [] } })));
 
     const file = new File([fileBytes], 'tiny.mp4');
     const events = await lastValueFrom(
@@ -69,7 +68,7 @@ describe('verifyVideo orchestrator', () => {
     expect(result!.tier1.status).toBe('verified');
     expect(result!.tier2.status).toBe('verified');
     // Tier 3 lands on `not-found` when no SF1.ots upgrade is cached.
-    expect(['not-found', 'attested-on-chain']).toContain(result!.tier3.status);
+    expect(result!.tier3.status).toBe('not-found');
   });
 
 
@@ -245,4 +244,31 @@ describe('verifyVideo orchestrator', () => {
     );
     expect(events[events.length - 1].type).toBe('result');
   });
+});
+
+describe('Bitcoin upgrade discovery after an XRP cache hit', () => {
+  beforeEach(async () => { await purgeScanCache(TESTNET_ACCOUNT, TEST_RIPPLED); });
+  afterEach(async () => { await purgeScanCache(TESTNET_ACCOUNT, TEST_RIPPLED); });
+  async function runUpgrade(tamper: boolean, offline = false): Promise<VerificationResult> {
+    const bytes = new Uint8Array([1,2,3]), sha = await sha256HexOf(bytes), fixture = await makeAnchorFixture(sha);
+    const upgrade = await makeUpgradeFixture(fixture);
+    if (tamper) (upgrade['Memos'] as Array<{Memo:{MemoData:string}}>)[3].Memo.MemoData = '00'.repeat(64);
+    const cache = await openScanCache(TESTNET_ACCOUNT, TEST_RIPPLED);
+    await putChannelEntry(cache, sha, { txHash: fixture.txHash, ledgerIndex: 1000, bundleHashHex: fixture.bundleHashHex }); cache.close();
+    const requests: Array<{method:string;params:Array<Record<string,unknown>>}> = [];
+    spyOn(window,'fetch').and.callFake(async (_url, init) => {
+      const body = JSON.parse(init!.body as string); requests.push(body);
+      if (body.method === 'account_tx') { if (offline) throw new TypeError('offline'); return new Response(JSON.stringify({ result: { transactions: [{ tx: upgrade, validated: true, ledger_index: 1100 }] } })); }
+      return new Response(JSON.stringify({result:body.params[0].transaction === fixture.txHash ? fixture.rippledTx : upgrade}));
+    });
+    const events = await lastValueFrom(verifyVideo({file:new File([bytes],'evidence.mp4'),trustAnchorBundle:{xrplAccount:TESTNET_ACCOUNT,registry:await makeRegistry()},rippledUrl:TEST_RIPPLED}).pipe(toArray()));
+    expect(requests.find(r=>r.method==='account_tx')!.params[0]['forward']).toBeFalse();
+    expect(requests.find(r=>r.method==='account_tx')!.params[0]['ledger_index_min']).toBe(1000);
+    return events.find(e=>e.type==='result') as VerificationResult;
+  }
+  it('searches beyond the original cache and verifies the later upgrade signature', async () => {
+    const result=await runUpgrade(false); expect(result.tier1.status).toBe('verified'); expect(result.tier2.status).toBe('verified'); expect(result.tier3.status).toBe('attested-on-chain'); expect(result.tier3.upgrade?.txHash).toBe('B'.repeat(64)); expect(result.tier3.reason).toContain('pending');
+  });
+  it('rejects a changed upgrade signature', async () => { const result=await runUpgrade(true); expect(result.tier3.status).toBe('invalid'); expect(result.tier1.status).toBe('verified'); });
+  it('preserves XRP results and reports an incomplete Bitcoin search on service failure', async () => { const result=await runUpgrade(false,true);expect(result.tier3.status).toBe('unavailable');expect(result.tier1.status).toBe('verified'); });
 });

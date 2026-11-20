@@ -103,3 +103,13 @@ export async function makeAnchorFixture(channelSha: string): Promise<AnchorFixtu
   };
   return { txHash, manifest, channelSha, bundleHashHex, rippledTx };
 }
+
+/** Signed upgrade fixture with a genuine pending timestamp, not a fake Bitcoin success. */
+export async function makeUpgradeFixture(anchor: AnchorFixture, merkleProof = '[]', ots = new Uint8Array([0,131,223,227,13,46,249,12,142,25,24,104,116,116,112,115,58,47,47,99,97,108,101,110,100,97,114,46,101,120,97,109,112,108,101])): Promise<Record<string, unknown>> {
+  const originalMemos = anchor.rippledTx['Memos'] as Array<{ Memo: { MemoData: string } }>;
+  const bundle = Uint8Array.from(originalMemos[0].Memo.MemoData.match(/../g)!, h => parseInt(h,16));
+  const signature = await ed.signAsync(concatBytes(bundle, utf8Encode(merkleProof), ots), SF1_TEST_APP_SEED);
+  const parts: Array<[string,string,Uint8Array]> = [['SF1.bundle','application/octet-stream',bundle],['SF1.merkleProof','application/json',utf8Encode(merkleProof)],['SF1.ots','application/octet-stream',ots],['SF1.sig','application/octet-stream',signature]];
+  return { Account: TESTNET_ACCOUNT, TransactionType: 'AccountSet', hash: 'B'.repeat(64), validated: true, ledger_index: 1100,
+    Memos: parts.map(([type,format,data]) => ({ Memo: { MemoType: bytesToHex(utf8Encode(type)), MemoFormat: bytesToHex(utf8Encode(format)), MemoData: bytesToHex(data) } })) };
+}

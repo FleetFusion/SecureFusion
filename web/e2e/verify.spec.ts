@@ -147,24 +147,11 @@ test.describe('SecureFusion Verifier — verify page', () => {
     await expect(tier2).toBeVisible();
     await expect(tier2).toHaveAttribute('data-status', 'verified');
 
-    // Tier 3 status depends on (a) whether the SF1.ots upgrade tx was
-    // already indexed by the scan loop before the channel hit broke the
-    // loop early, and (b) whether the optional OTS library is installed.
-    //   - scan finds bundle tx FIRST and breaks → OTS entry never
-    //     indexed → `not-found` (current Phase B behaviour).
-    //   - scan walks bundle + ots, finds OTS entry, library installed →
-    //     `verified`.
-    //   - scan walks bundle + ots, finds OTS entry, library absent →
-    //     `attested-on-chain` (per ots.ts wrapper contract).
-    // All three are valid for the verifier core as it ships in v1; the
-    // e2e harness asserts the orchestrator reaches a recognised terminal
-    // status, not which one.
+    // This published conformance vector contains dummy 0x42 OTS bytes.
+    // XRP and signature checks succeed; fabricated Bitcoin bytes must fail.
     const tier3 = page.getByTestId('tier-3');
     await expect(tier3).toBeVisible();
-    await expect(tier3).toHaveAttribute(
-      'data-status',
-      /^(verified|attested-on-chain|not-found)$/,
-    );
+    await expect(tier3).toHaveAttribute('data-status', 'invalid');
 
     // Tile headlines should still render their canonical copy.
     await expect(page.getByText(/hash on xrpl/i)).toBeVisible();
@@ -225,5 +212,14 @@ test.describe('SecureFusion Verifier — verify page', () => {
     await page.getByTestId('hero-verify-cta').click();
     await expect(page).toHaveURL(/\/verify$/);
     await expect(page.locator('input[type="file"]')).toBeAttached();
+  });
+  test('local Bitcoin proof input is checked against the selected event', async ({ page }) => {
+    await page.locator('input[type="file"]').first().setInputFiles({ name:'event.mp4', mimeType:'video/mp4', buffer:Buffer.alloc(0) });
+    await expect(page.getByTestId('tier-1')).toHaveAttribute('data-status','verified');
+    await page.getByTestId('bitcoin-proof-input').setInputFiles({ name:'wrong-event-proof.json', mimeType:'application/json', buffer:Buffer.from(JSON.stringify({bundleHash:'a'.repeat(64),merkleProofJson:'[]',otsProofBase64:'AA=='})) });
+    await expect(page.getByTestId('tier-3')).toHaveAttribute('data-status','invalid');
+    await page.getByTestId('tier-3').getByRole('button').click();
+    await expect(page.getByText('This Bitcoin proof belongs to a different video event.')).toBeVisible();
+    await expect(page.getByTestId('tier-1')).toHaveAttribute('data-status','verified');
   });
 });

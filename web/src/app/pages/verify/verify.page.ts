@@ -20,8 +20,10 @@ import type {
   VerificationEvent,
   VerificationResult,
   VerifyOptions,
+  SuppliedBitcoinProof,
 } from '../../core/verifier-types';
 import { verifyVideo as defaultVerifyVideo } from '../../core/verify';
+import { parseBitcoinProofFile } from '../../core/bitcoin-proof';
 
 /** State machine state for the verify page. */
 type VerifyState = 'idle' | 'hashing' | 'scanning' | 'verified' | 'failed';
@@ -130,6 +132,13 @@ export const TRUST_ANCHOR_LOADER = new InjectionToken<
             [result]="finalResult()!"
             [organisation]="organisation()"
           />
+          <section class="rounded-lg border border-gray-200 bg-white p-4 space-y-2">
+            <p class="text-sm text-gray-700">Have the platform’s Bitcoin proof file? Add it to check its connection to this video and a confirmed Bitcoin block. The video and proof stay in your browser.</p>
+            <input #proofPicker type="file" accept=".json,application/json" class="hidden" data-testid="bitcoin-proof-input" (change)="onBitcoinProofSelected($event)" />
+            <button type="button" data-testid="add-bitcoin-proof" class="rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800" (click)="proofPicker.click()">Add Bitcoin proof file</button>
+            @if (proofFileName()) { <p class="text-sm text-gray-600">Bitcoin proof: {{ proofFileName() }}</p> }
+            @if (proofError()) { <p role="alert" class="text-sm text-red-700">{{ proofError() }}</p> }
+          </section>
           <app-manifest-detail [result]="finalResult()!" />
           <app-verify-independently
             [result]="finalResult()!"
@@ -172,6 +181,10 @@ export class VerifyPage {
   });
   readonly finalResult = signal<VerificationResult | null>(null);
   readonly errorMessage = signal<string>('');
+  readonly proofFileName = signal('');
+  readonly proofError = signal('');
+  private selectedVideo: File | null = null;
+  private suppliedProof?: SuppliedBitcoinProof;
   /**
    * Read-only mirror of the user's chosen rippled URL. Updates whenever
    * the SettingsService emits. Used by the "Verify independently" panel
@@ -203,6 +216,8 @@ export class VerifyPage {
 
   /** Drop-zone handler. Cancels any in-flight verification first. */
   async onFile(file: File): Promise<void> {
+    if (this.selectedVideo !== file) { this.suppliedProof = undefined; this.proofFileName.set(''); this.proofError.set(''); }
+    this.selectedVideo = file;
     this.cancel();
     this.bytesProcessed.set(0);
     this.totalBytes.set(file.size);
@@ -231,6 +246,7 @@ export class VerifyPage {
     const obs = this.verifyVideoFn({
       file,
       fileName: file.name,
+      bitcoinProof: this.suppliedProof,
       trustAnchorBundle: {
         xrplAccount: bundle.xrplAccount,
         registry: bundle.registry,
@@ -254,6 +270,20 @@ export class VerifyPage {
     });
   }
 
+  async onBitcoinProofSelected(event: Event): Promise<void> {
+    const input = event.target as HTMLInputElement, file = input.files?.[0], video = this.selectedVideo;
+    if (!file || !video) return;
+    this.proofError.set('');
+    try {
+      if (file.size > 131072) throw new Error('Bitcoin proof file is too large.');
+      const proof = parseBitcoinProofFile(await file.text());
+      if (video !== this.selectedVideo) return;
+      this.suppliedProof = proof; this.proofFileName.set(file.name);
+      await this.onFile(video);
+    } catch (error) { this.proofError.set((error as Error).message); }
+    finally { input.value = ''; }
+  }
+
   /** Cancel the in-flight verification (if any). */
   cancel(): void {
     if (this.currentSub) {
@@ -267,6 +297,7 @@ export class VerifyPage {
 
   /** Reset to idle so the user can verify another file. */
   reset(): void {
+    this.suppliedProof = undefined; this.selectedVideo = null; this.proofFileName.set(''); this.proofError.set('');
     this.cancel();
     this.finalResult.set(null);
     this.errorMessage.set('');

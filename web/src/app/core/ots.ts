@@ -1,120 +1,89 @@
-/**
- * OpenTimestamps verifier wrapper.
- *
- * Mirrors `verifyOtsProof` in `reference-verifier/src/index.js`. The
- * OTS library is heavy (~600 KB) so we lazy-load it via dynamic
- * import — the bundle is only fetched when a video being verified
- * actually claims an SF1.ots upgrade. Browsers never installed with
- * the library at all surface the same `ots-library-not-installed`
- * reason as the Node reference, keeping the orchestrator's tier-3
- * dispatch table identical across runtimes.
- *
- * Phase B intentionally keeps this a thin shim. Full integration with
- * `javascript-opentimestamps` and a fixture-driven test happens when
- * the FleetFusion testnet anchor pipeline produces a real OTS proof
- * we can pin into the spec — see plan Task 9 step 4 ("Generate the
- * FIXTURE_OTS bytes during impl"). Until then, the orchestrator's
- * tier-3 dispatch lands on `attested-on-chain` (signature-valid SF1.ots
- * tx exists, but Bitcoin block resolution is deferred), which matches
- * the Node reference's behaviour when the optional dep is missing.
+/** Bounded OpenTimestamps verification for raw calendar proofs and detached .ots files.
+ * Replays every operation locally; Bitcoin is verified only against agreed main-chain headers.
+ * No video, digest or calendar URL is uploaded. Only public block heights/hashes are requested.
  */
-
-import { bytesToHex } from './verifier/bytes';
-
+import { bytesEqual, bytesToHex, concatBytes, hexToBytes, utf8Encode } from './verifier/bytes';
+import { verifyBitcoinHeader } from './bitcoin';
 export type OtsResult =
-  | {
-      status: 'verified';
-      bitcoin: { blockHeight: number; blockTimeUtc: string | null };
-    }
-  | { status: 'unresolved'; reason: string };
-
-/**
- * Verify an OpenTimestamps proof against the supplied digest. The
- * digest is normalised to lowercase hex; both the running merkle root
- * (xrpl-sf1ots mode) and a raw bundleHash (https mode) are valid
- * inputs.
- *
- * Browser-only behavioural notes vs the Node reference:
- *   - The dynamic `import('javascript-opentimestamps')` resolves
- *     against the SPA bundle's chunk graph. esbuild emits a separate
- *     chunk so the OTS code only ships when this function is invoked.
- *   - The library sometimes makes network calls to a calendar server
- *     for unupgraded proofs. Verification of an upgraded proof is
- *     pure-CPU; the SPA does NOT initiate calendar requests.
- */
-export async function verifyOtsProof(
-  otsBytes: Uint8Array,
-  digestHex: string,
-): Promise<OtsResult> {
-  const wantHex = digestHex.toLowerCase();
-  if (!/^[0-9a-f]{64}$/.test(wantHex)) {
-    return { status: 'unresolved', reason: 'digest-mismatch:not-64-hex' };
+  | { status: 'verified'; bitcoin: { blockHeight: number; blockTimeUtc: string | null; blockHash?: string } }
+  | { status: 'unresolved' | 'invalid'; reason: string };
+const MAGIC = hexToBytes('004f70656e54696d657374616d7073000050726f6f6600bf89e2e884e89294');
+const BITCOIN = '0588960d73d71901';
+const PENDING = '83dfe30d2ef90c8e';
+class Reader {
+  pos = 0;
+  readonly bytes: Uint8Array;
+  constructor(bytes: Uint8Array) { this.bytes = bytes; }
+  take(n: number): Uint8Array {
+    if (!Number.isSafeInteger(n) || n < 0 || this.pos + n > this.bytes.length) throw new Error('Truncated OpenTimestamps proof.');
+    const out = this.bytes.slice(this.pos, this.pos + n); this.pos += n; return out;
   }
-  if (!otsBytes || otsBytes.byteLength === 0) {
-    return { status: 'unresolved', reason: 'ots-bytes-empty' };
+  byte(): number { return this.take(1)[0]; }
+  uint(): number {
+    let n = 0, factor = 1;
+    for (let i = 0; i < 8; i++) { const b = this.byte(); n += (b & 127) * factor;
+      if (!Number.isSafeInteger(n)) throw new Error('OpenTimestamps integer overflow.');
+      if (!(b & 128)) return n; factor *= 128;
+    }
+    throw new Error('OpenTimestamps integer overflow.');
   }
-
-  let mod: unknown;
-  try {
-    // Bare specifier loaded via an indirect dynamic import so the
-    // TypeScript compiler doesn't try to resolve the (optional)
-    // package at build time. esbuild keeps the import lazy — the
-    // chunk is only fetched if this branch executes. When absent we
-    // surface 'ots-library-not-installed' to match the Node ref.
-    const dynImport = (specifier: string): Promise<unknown> =>
-      // eslint-disable-next-line @typescript-eslint/no-implied-eval
-      Function('s', 'return import(s)')(specifier) as Promise<unknown>;
-    mod = await dynImport('javascript-opentimestamps');
-  } catch {
-    return { status: 'unresolved', reason: 'ots-library-not-installed' };
+  varBytes(): Uint8Array { const n = this.uint(); if (n > 8192) throw new Error('OpenTimestamps payload too large.'); return this.take(n); }
+}
+export interface ParsedOts { attestations: Array<{ height: number; digest: Uint8Array }>; pending: boolean; }
+export async function parseOtsProof(bytes: Uint8Array, digestHex: string): Promise<ParsedOts> {
+  if (!/^[0-9a-f]{64}$/i.test(digestHex)) throw new Error('Expected a SHA-256 digest.');
+  if (!bytes.length || bytes.length > 65536) throw new Error('OpenTimestamps proof must contain 1–65536 bytes.');
+  const reader = new Reader(bytes), initial = hexToBytes(digestHex);
+  if (bytesEqual(bytes.subarray(0, MAGIC.length), MAGIC)) {
+    reader.take(MAGIC.length);
+    if (reader.uint() !== 1 || reader.byte() !== 0x08) throw new Error('Unsupported detached OpenTimestamps file.');
+    if (!bytesEqual(reader.take(32), initial)) throw new Error('OpenTimestamps file digest does not match the event Merkle root.');
   }
-
-  try {
-    const ots = (mod as { default?: unknown }).default ?? mod;
-    const otsRecord = ots as Record<string, unknown>;
-    const detachedClass = otsRecord['DetachedTimestampFile'] as
-      | { deserialize?: (b: Uint8Array) => unknown }
-      | undefined;
-    const detached = detachedClass?.deserialize?.(otsBytes);
-    if (!detached) {
-      return { status: 'unresolved', reason: 'ots-library-incompatible' };
+  const result: ParsedOts = { attestations: [], pending: false }; let entries = 0;
+  async function entry(tag: number, message: Uint8Array, depth: number): Promise<void> {
+    if (++entries > 2048) throw new Error('OpenTimestamps proof has too many operations.');
+    if (tag === 0) {
+      const kind = bytesToHex(reader.take(8)), payload = reader.varBytes();
+      if (kind === BITCOIN) {
+        const att = new Reader(payload), height = att.uint();
+        if (att.pos !== payload.length || result.attestations.length >= 64) throw new Error('Invalid Bitcoin attestation.');
+        result.attestations.push({ height, digest: message.slice() });
+      } else if (kind === PENDING) { const pending = new Reader(payload); if (!pending.varBytes().length || pending.pos !== payload.length) throw new Error('Invalid pending timestamp.'); result.pending = true; }
+      return;
     }
-    const detachedRecord = detached as { fileDigest?: () => Uint8Array };
-    const fileDigest = detachedRecord.fileDigest?.();
-    if (fileDigest && bytesToHex(new Uint8Array(fileDigest)) !== wantHex) {
-      return { status: 'unresolved', reason: 'digest-mismatch' };
-    }
-    const verifyFn = otsRecord['verify'] as
-      | ((d: unknown) => Promise<unknown>)
-      | undefined;
-    if (typeof verifyFn !== 'function') {
-      return { status: 'unresolved', reason: 'ots-library-incompatible' };
-    }
-    const result = await verifyFn(detached);
-    if (!result || typeof result !== 'object') {
-      return { status: 'unresolved', reason: 'ots-no-attestation' };
-    }
-    const r = result as { bitcoin?: unknown; get?: (k: string) => unknown };
-    const bitcoin =
-      r.bitcoin ?? (typeof r.get === 'function' ? r.get('bitcoin') : null);
-    const btc = bitcoin as { height?: number; timestamp?: number; blockTimeUtc?: string } | null;
-    if (!btc || typeof btc.height !== 'number') {
-      return { status: 'unresolved', reason: 'ots-no-bitcoin-attestation' };
-    }
-    const blockTimeUtc =
-      typeof btc.timestamp === 'number'
-        ? new Date(btc.timestamp * 1000).toISOString()
-        : typeof btc.blockTimeUtc === 'string'
-          ? btc.blockTimeUtc
-          : null;
-    return {
-      status: 'verified',
-      bitcoin: { blockHeight: btc.height, blockTimeUtc },
-    };
-  } catch (err) {
-    return {
-      status: 'unresolved',
-      reason: `ots-verify-failed:${String((err as Error)?.message ?? err)}`,
-    };
+    let next: Uint8Array;
+    if (tag === 0xf0) next = concatBytes(message, reader.varBytes());
+    else if (tag === 0xf1) next = concatBytes(reader.varBytes(), message);
+    else if (tag === 0xf2) next = message.slice().reverse();
+    else if (tag === 0xf3) next = utf8Encode(bytesToHex(message));
+    else if (tag === 0x08 || tag === 0x02) next = new Uint8Array(await crypto.subtle.digest(tag === 0x08 ? 'SHA-256' : 'SHA-1', message));
+    else if (tag === 0x03) { const { ripemd160 } = await import('hash-wasm'); next = hexToBytes(await ripemd160(message)); }
+    else throw new Error('Unsupported OpenTimestamps operation: ' + tag);
+    if (!next.length || next.length > 4096) throw new Error('OpenTimestamps operation result too large.');
+    await node(next, depth + 1);
   }
+  async function node(message: Uint8Array, depth: number): Promise<void> {
+    if (depth > 128) throw new Error('OpenTimestamps proof nesting too deep.');
+    let tag = reader.byte();
+    while (tag === 0xff) { await entry(reader.byte(), message, depth); tag = reader.byte(); }
+    await entry(tag, message, depth);
+  }
+  await node(initial, 0);
+  if (reader.pos !== bytes.length) throw new Error('Trailing bytes in OpenTimestamps proof.');
+  return result;
+}
+export async function verifyOtsProof(bytes: Uint8Array, digestHex: string, signal?: AbortSignal): Promise<OtsResult> {
+  let parsed: ParsedOts;
+  try { parsed = await parseOtsProof(bytes, digestHex); }
+  catch (error) { return { status: 'invalid', reason: (error as Error).message }; }
+  if (!parsed.attestations.length) return { status: 'unresolved', reason: parsed.pending ? 'Bitcoin timestamp is still pending confirmation.' : 'No Bitcoin block attestation in the proof.' };
+  let failure: OtsResult = { status: 'invalid', reason: 'No Bitcoin commitment matched a confirmed block.' };
+  let unavailable: OtsResult | undefined;
+  for (const att of parsed.attestations.sort((a, b) => a.height - b.height).slice(0, 4)) {
+    if (signal?.aborted) throw new DOMException('aborted', 'AbortError');
+    const result = await verifyBitcoinHeader(att.height, att.digest, signal);
+    if (result.status === 'verified') return result;
+    if (result.status === 'unresolved') unavailable = result; else failure = result;
+  }
+  return unavailable ?? failure;
 }

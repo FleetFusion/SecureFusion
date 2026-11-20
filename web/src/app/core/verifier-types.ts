@@ -37,6 +37,7 @@ export type Tier2Status =
 
 /** Tier-3: Bitcoin attestation via SF1.ots upgrade or HTTPS proof. */
 export type Tier3Status =
+  | 'unavailable'        // public proof search or network check could not complete
   | 'verified'           // OTS proof resolved to a Bitcoin block
   | 'attested-on-chain'  // SF1.ots upgrade exists + sig valid; OTS deferred
   | 'verified-via-https' // HTTPS proof returned + signature checks pending UI
@@ -54,6 +55,7 @@ export interface MerkleProofStep {
 }
 
 export interface BitcoinAttestation {
+  readonly blockHash?: string;
   readonly blockHeight: number;
   readonly blockTimeUtc: string | null;
 }
@@ -92,6 +94,7 @@ export interface Tier2Result {
 }
 
 export interface Tier3Result {
+  readonly proofSource?: 'local';
   readonly status: Tier3Status;
   readonly reason?: string;
   /** Reflects the registry entry's bitcoinProofMode for forensics. */
@@ -144,7 +147,15 @@ export type VerificationEvent =
   | (VerificationProgress & { readonly type: 'progress' })
   | (VerificationResult & { readonly type: 'result' });
 
+export interface SuppliedBitcoinProof {
+  readonly bundleHash: string;
+  readonly merkleProofJson: string;
+  readonly otsProofBase64: string;
+}
+
 export interface VerifyOptions {
+  /** Optional locally supplied proof; cryptographically checked against the signed on-chain event. */
+  readonly bitcoinProof?: SuppliedBitcoinProof;
   readonly file: File | Blob;
   /** Display name. Defaults to `file.name` for File, 'blob' otherwise. */
   readonly fileName?: string;
