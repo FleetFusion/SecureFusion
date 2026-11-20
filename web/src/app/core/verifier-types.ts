@@ -94,7 +94,7 @@ export interface Tier2Result {
 }
 
 export interface Tier3Result {
-  readonly proofSource?: 'local';
+  readonly proofSource?: 'local' | 'https';
   readonly status: Tier3Status;
   readonly reason?: string;
   /** Reflects the registry entry's bitcoinProofMode for forensics. */
@@ -109,6 +109,7 @@ export interface Tier3Result {
 
 /** Streaming progress events emitted while verification is in flight. */
 export type VerificationProgress =
+  | { readonly kind: 'ledger-retry'; readonly waitMs: number; readonly attempt: number }
   | { readonly kind: 'hashing'; readonly fileSize: number; readonly fraction: number }
   | { readonly kind: 'cache-hit'; readonly channelSha: string }
   | {

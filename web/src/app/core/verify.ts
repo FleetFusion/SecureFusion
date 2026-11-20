@@ -21,6 +21,7 @@ import { verifyEd25519 } from './ed25519';
 import { verifyOtsProof } from './ots';
 import { applyMerkleBranch } from './merkle';
 import { verifySuppliedBitcoinProof } from './bitcoin-proof';
+import { fetchHttpsBitcoinProof } from './https-bitcoin-proof';
 import {
   getChannelEntry,
   getOtsEntry,
@@ -141,7 +142,8 @@ async function runVerify(
     return;
   }
 
-  const txResult = await fetchAnchorTx(channelHit.txHash, rippledUrl, signal);
+  const txResult = await fetchAnchorTx(channelHit.txHash, rippledUrl, signal, notice =>
+    sub.next({ type: 'progress', kind: 'ledger-retry', ...notice }));
   const tier1and2 = await runTier1And2(
     txResult,
     fileSha256,
@@ -164,6 +166,7 @@ async function runVerify(
       signal,
       rippledUrl,
       channelHit.ledgerIndex,
+      tier1and2.manifest?.['eventId'],
     );
   }
   sub.next({ type: 'progress', kind: 'tier3', result: tier3 });
@@ -223,6 +226,16 @@ async function scanForChannel(
   signal: AbortSignal,
   opts: { rippledUrl: string; fromLedger: number },
 ): Promise<{ txHash: string; ledgerIndex: number; bundleHashHex: string } | undefined> {
+  const onRetry = (notice: import('./rippled-request').RetryNotice) => sub.next({ type: 'progress', kind: 'ledger-retry', ...notice });
+  // Most uploads are recent. Check one newest page without moving the forward
+  // scan cursor; older videos still use the complete, resumable history scan.
+  let recent = 0;
+  for await (const wrapped of accountTx(account, { rippledUrl: opts.rippledUrl, fromLedger: -1, forward: false, maxPages: 1, signal, onRetry })) {
+    await indexAnchorOrUpgrade(wrapped, cache, account);
+    sub.next({ type: 'progress', kind: 'scanning', ledgersWalked: ++recent, txsDecoded: recent, cursor: wrapped.ledger_index });
+    const hit = await getChannelEntry(cache, wantSha);
+    if (hit) return hit;
+  }
   const progress: ScanLedgerProgress = {
     ledgersWalked: 0,
     txsDecoded: 0,
@@ -236,6 +249,7 @@ async function scanForChannel(
     rippledUrl: opts.rippledUrl,
     fromLedger: opts.fromLedger,
     signal,
+    onRetry,
   })) {
     progress.ledgersWalked += 1;
     progress.cursor = wrapped.ledger_index;
@@ -347,8 +361,9 @@ async function fetchAnchorTx(
   txHash: string,
   rippledUrl: string,
   signal: AbortSignal,
+  onRetry?: (notice: import('./rippled-request').RetryNotice) => void,
 ): Promise<RippledTxResult> {
-  return fetchTransaction(txHash, { rippledUrl, signal });
+  return fetchTransaction(txHash, { rippledUrl, signal, onRetry });
 }
 
 interface Tier1And2 {
@@ -506,6 +521,7 @@ async function runTier3(
   _signal: AbortSignal,
   _rippledUrl: string,
   anchorLedger: number,
+  eventId?: unknown,
 ): Promise<Tier3Result> {
   const mode = registryEntry.bitcoinProofMode;
   if (mode === 'none') {
@@ -515,17 +531,7 @@ async function runTier3(
       bitcoinProofMode: 'none',
     };
   }
-  if (mode === 'https') {
-    // Forward-compatibility stub: the v1 FleetFusion entry never lands
-    // here. A full https-mode fetch lives in
-    // reference-verifier/src/index.js::fetchHttpsBitcoinProof and will
-    // be ported when a registry entry actually requests it.
-    return {
-      status: 'not-found',
-      reason: 'https-mode-not-implemented-in-spa',
-      bitcoinProofMode: 'https',
-    };
-  }
+  if (mode === 'https') return fetchHttpsBitcoinProof(registryEntry, bundleHashHex, eventId, _signal);
   if (mode !== 'xrpl-sf1ots') {
     return {
       status: 'invalid',

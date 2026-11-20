@@ -16,13 +16,18 @@
  *     independent operators.
  */
 
-import { abortableDelay, requestRippled, type RetryNotice } from './rippled-request';
+import { abortableDelay, requestRippled, RippledUnavailableError, type RetryNotice } from './rippled-request';
 
 const DEFAULT_RIPPLED_URL = 'https://xrplcluster.com';
+// Official alias of the same public Mainnet cluster. Custom endpoints never switch networks.
+function ledgerEndpoints(url: string): string[] {
+  return [DEFAULT_RIPPLED_URL, DEFAULT_RIPPLED_URL + '/'].includes(url) ? [url, 'https://xrpl.ws/'] : [url];
+}
 
 export interface FetchTransactionOptions {
   rippledUrl?: string;
   multiNodeUrls?: string[];
+  onRetry?: (notice: RetryNotice) => void;
   agreementThreshold?: number;
   signal?: AbortSignal;
 }
@@ -33,6 +38,8 @@ export interface AccountTxOptions {
   /** Newest-first discovery is used to find later Bitcoin proof upgrades. */
   forward?: boolean;
   pageSize?: number;
+  /** Bounded recent-history probe; omitted for complete history traversal. */
+  maxPages?: number;
   onRetry?: (notice: RetryNotice) => void;
   signal?: AbortSignal;
 }
@@ -72,6 +79,7 @@ export async function fetchTransaction(
   const {
     rippledUrl = DEFAULT_RIPPLED_URL,
     multiNodeUrls,
+    onRetry,
     agreementThreshold = 2,
     signal,
   } = options;
@@ -80,20 +88,29 @@ export async function fetchTransaction(
     return fetchTransactionMultiNode(txHash, multiNodeUrls, agreementThreshold, signal);
   }
 
-  return fetchTransactionFromUrl(txHash, rippledUrl, signal);
+  const endpoints = ledgerEndpoints(rippledUrl);
+  for (let i = 0; i < endpoints.length; i++) {
+    try { return await fetchTransactionFromUrl(txHash, endpoints[i], signal, onRetry); }
+    catch (error) {
+      if (!(error instanceof RippledUnavailableError) || error.reason !== 'connection' || i === endpoints.length - 1 || signal?.aborted) throw error;
+      onRetry?.({waitMs: 0, attempt: 1});
+    }
+  }
+  throw new RippledUnavailableError();
 }
 
 async function fetchTransactionFromUrl(
   txHash: string,
   rippledUrl: string,
   signal?: AbortSignal,
+  onRetry?: (notice: RetryNotice) => void,
 ): Promise<RippledTxResult> {
   const body = {
     method: 'tx',
     params: [{ transaction: txHash, binary: false }],
   };
 
-  const result = await requestRippled<RippledTxResult>(rippledUrl, body, signal);
+  const result = await requestRippled<RippledTxResult>(rippledUrl, body, signal, onRetry);
 
   if (!result.validated) {
     throw new Error('Transaction is not yet validated');
@@ -174,18 +191,25 @@ export async function* accountTx(
     fromLedger = -1,
     forward = true,
     pageSize = 200,
+    maxPages = Infinity,
     onRetry,
     signal,
   } = options;
 
+  if (!(maxPages > 0) || (maxPages !== Infinity && !Number.isInteger(maxPages))) throw new Error('maxPages must be a positive integer');
+  const endpoints = ledgerEndpoints(rippledUrl);
+  let endpoint = 0, pages = 0;
+  let lowerBound = fromLedger, upperBound = -1;
+  let resumeLedger: number | undefined;
+  const deliveredAtBoundary = new Set<string>();
   let marker: unknown;
   while (true) {
     if (signal && signal.aborted) return;
 
     const params: Record<string, unknown> = {
       account,
-      ledger_index_min: fromLedger,
-      ledger_index_max: -1,
+      ledger_index_min: lowerBound,
+      ledger_index_max: upperBound,
       binary: false,
       forward,
       limit: pageSize,
@@ -194,9 +218,15 @@ export async function* accountTx(
 
     let result: { transactions?: unknown[]; marker?: unknown };
     try {
-      result = await requestRippled(rippledUrl, { method: 'account_tx', params: [params] }, signal, onRetry);
+      result = await requestRippled(endpoints[endpoint], { method: 'account_tx', params: [params] }, signal, onRetry);
     } catch (err) {
       if (signal?.aborted) return;
+      if (err instanceof RippledUnavailableError && err.reason === 'connection' && endpoint < endpoints.length - 1) {
+        endpoint++; marker = undefined;
+        if (resumeLedger !== undefined) { if (forward) lowerBound = resumeLedger; else upperBound = resumeLedger; }
+        onRetry?.({waitMs: 0, attempt: 1});
+        continue; // Markers are node-specific: restart from the inclusive last yielded ledger.
+      }
       throw err;
     }
 
@@ -222,10 +252,15 @@ export async function* accountTx(
           : typeof tx.ledger_index === 'number'
             ? tx.ledger_index
             : -1;
+      if (resumeLedger !== ledger_index) { resumeLedger = ledger_index; deliveredAtBoundary.clear(); }
+      const hash = typeof tx.hash === 'string' ? tx.hash : '';
+      if (hash && deliveredAtBoundary.has(hash)) continue;
+      if (hash) deliveredAtBoundary.add(hash);
       yield { tx, meta, ledger_index, validated: true };
     }
 
-    if (result.marker === undefined || result.marker === null) {
+    pages++;
+    if (pages >= maxPages || result.marker === undefined || result.marker === null) {
       return;
     }
     marker = result.marker;

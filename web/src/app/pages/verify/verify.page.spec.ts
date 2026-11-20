@@ -247,4 +247,13 @@ describe('VerifyPage', () => {
     fixture.detectChanges();
     expect(fixture.componentInstance.organisation()).toBe('FleetFusion');
   });
+
+  it('retries the selected video without requiring another file selection',async()=>{
+    const runs:Subject<VerificationEvent>[]=[];const files:File[]=[];TestBed.configureTestingModule({imports:[VerifyPage],providers:[{provide:VERIFY_VIDEO_FN,useValue:(opts:VerifyOptions)=>{files.push(opts.file as File);const run=new Subject<VerificationEvent>();runs.push(run);return run.asObservable();}},{provide:TRUST_ANCHOR_LOADER,useValue:()=>Promise.resolve(dummyBundle)}]});
+    const fixture=TestBed.createComponent(VerifyPage);const file=makeFile();await fixture.componentInstance.onFile(file);runs[0].error(new Error('temporary connection failure'));fixture.detectChanges();
+    fixture.nativeElement.querySelector('[data-testid="retry-same-file"]').click();await Promise.resolve();fixture.detectChanges();expect(files).toEqual([file,file]);expect(fixture.componentInstance.state()).toBe('hashing');expect(fixture.componentInstance.errorMessage()).toBe('');
+  });
+  it('shows a retry notice while reconnecting and cancels work when leaving the page',async()=>{
+    let stopped=false;let emit:((event:VerificationEvent)=>void)|undefined;const events=new Observable<VerificationEvent>(sub=>{emit=e=>sub.next(e);return()=>{stopped=true;};});setupTestBed(events);const fixture=TestBed.createComponent(VerifyPage);await fixture.componentInstance.onFile(makeFile());emit!({type:'progress',kind:'ledger-retry',waitMs:1250,attempt:1});fixture.detectChanges();expect(fixture.nativeElement.querySelector('[data-testid="ledger-retry-notice"]')).toBeTruthy();fixture.destroy();expect(stopped).toBeTrue();
+  });
 });

@@ -1,6 +1,7 @@
 import {
   Component,
   InjectionToken,
+  OnDestroy,
   computed,
   inject,
   signal,
@@ -108,6 +109,7 @@ export const TRUST_ANCHOR_LOADER = new InjectionToken<
           [cachedFromLedger]="cachedFromLedger()"
           (cancel)="cancel()"
         />
+        @if (retryNotice()) { <p class="text-sm text-gray-600" role="status" data-testid="ledger-retry-notice">{{ retryNotice() }}</p> }
       } @else if (state() === 'verified' && finalResult()) {
         <div class="space-y-4">
           <div class="flex items-center justify-between">
@@ -152,6 +154,7 @@ export const TRUST_ANCHOR_LOADER = new InjectionToken<
         >
           <h2 class="text-lg font-semibold">Verification could not be completed</h2>
           <p class="mt-1 text-sm">{{ errorMessage() }}</p>
+          <button type="button" data-testid="retry-same-file" class="mt-3 mr-3 rounded-md bg-gray-900 px-3 py-2 text-sm font-medium text-white hover:bg-gray-800" (click)="retrySameFile()">Retry verification</button>
           <button
             type="button"
             data-testid="retry"
@@ -165,7 +168,7 @@ export const TRUST_ANCHOR_LOADER = new InjectionToken<
     </div>
   `,
 })
-export class VerifyPage {
+export class VerifyPage implements OnDestroy {
   /** Allow tests to swap the orchestrator. */
   private readonly verifyVideoFn = inject(VERIFY_VIDEO_FN);
   private readonly trustAnchorLoader = inject(TRUST_ANCHOR_LOADER);
@@ -183,6 +186,7 @@ export class VerifyPage {
   readonly errorMessage = signal<string>('');
   readonly proofFileName = signal('');
   readonly proofError = signal('');
+  readonly retryNotice = signal('');
   private selectedVideo: File | null = null;
   private suppliedProof?: SuppliedBitcoinProof;
   /**
@@ -224,6 +228,7 @@ export class VerifyPage {
     this.scan.set({ ledgersWalked: 0, txsDecoded: 0, cursor: 0 });
     this.finalResult.set(null);
     this.errorMessage.set('');
+    this.retryNotice.set('');
     this.state.set('hashing');
 
     let bundle: TrustAnchorBundle;
@@ -295,6 +300,12 @@ export class VerifyPage {
     }
   }
 
+  retrySameFile(): void {
+    if (this.selectedVideo) void this.onFile(this.selectedVideo);
+  }
+
+  ngOnDestroy(): void { this.currentSub?.unsubscribe(); this.currentSub = null; }
+
   /** Reset to idle so the user can verify another file. */
   reset(): void {
     this.suppliedProof = undefined; this.selectedVideo = null; this.proofFileName.set(''); this.proofError.set('');
@@ -323,7 +334,13 @@ export class VerifyPage {
           this.state.set('scanning');
           break;
         }
+        case 'ledger-retry': {
+          this.retryNotice.set(event.waitMs > 0 ? 'The ledger connection is busy or interrupted. Retrying automatically shortly…' : 'Reconnecting to the public ledger…');
+          this.state.set('scanning');
+          break;
+        }
         case 'scanning': {
+          this.retryNotice.set('');
           this.scan.set({
             ledgersWalked: event.ledgersWalked,
             txsDecoded: event.txsDecoded,
@@ -344,6 +361,7 @@ export class VerifyPage {
 
     if (event.type === 'result') {
       const { type: _type, ...rest } = event;
+      this.retryNotice.set('');
       this.finalResult.set(rest);
       this.state.set('verified');
     }

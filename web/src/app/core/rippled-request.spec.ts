@@ -79,4 +79,22 @@ describe('rippled availability handling', () => {
     const ctrl = new AbortController(); ctrl.abort();
     await expectAsync(abortableDelay(1000, ctrl.signal)).toBeRejectedWith(jasmine.objectContaining({ name: 'AbortError' }));
   });
+
+  it('retries a dropped browser connection and keeps the same request payload', async () => {
+    const request = spyOn(window, 'fetch').and.returnValues(Promise.reject(new TypeError('Failed to fetch')), Promise.resolve(response({validated:true})));
+    const notice = jasmine.createSpy('notice'); const pending=requestRippled('https://node.example',{method:'tx'},undefined,notice);
+    await flush();expect(request).toHaveBeenCalledTimes(1);expect(notice).toHaveBeenCalledWith({waitMs:1250,attempt:1});jasmine.clock().tick(1250);
+    expect((await pending)['validated']).toBeTrue();expect(request).toHaveBeenCalledTimes(2);expect(request.calls.argsFor(0)[1]!.body).toBe(request.calls.argsFor(1)[1]!.body);
+  });
+  it('retries a timed-out connection instead of immediately failing the video', async () => {
+    const request=spyOn(window,'fetch').and.callFake(async(_url,init)=>{
+      if(request.calls.count()===1)return await new Promise<Response>((_resolve,reject)=>init!.signal!.addEventListener('abort',()=>reject(new DOMException('timeout','AbortError'))));
+      return response({validated:true});
+    });
+    const pending=requestRippled('https://node.example',{method:'tx'});await flush();jasmine.clock().tick(15000);await flush();jasmine.clock().tick(1250);expect((await pending)['validated']).toBeTrue();expect(request).toHaveBeenCalledTimes(2);
+  });
+  it('bounds persistent connection failures and permits cancellation during the wait', async()=>{
+    const request=spyOn(window,'fetch').and.rejectWith(new TypeError('offline'));const pending=requestRippled('https://node.example',{method:'tx'}).catch(error=>error);
+    for(const delay of [1250,2250,4250]){await flush();jasmine.clock().tick(delay);}expect(await pending).toEqual(jasmine.any(RippledUnavailableError));expect(request).toHaveBeenCalledTimes(4);
+  });
 });

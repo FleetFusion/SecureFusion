@@ -193,3 +193,11 @@ The first commercial implementation is being built by FleetFusion. We hope it wo
 ---
 
 *"The trust anchor for video evidence should not be the company that sells the platform."*
+
+### FleetFusion Bitcoin proof delivery
+
+The browser obtains completed Bitcoin proofs with a read-only GET to `https://api.fleetfusion.ai/api/secure-fusion/proofs/{bundleHash}`. The URL contains the event bundle hash already published on XRP Ledger. The response contains only `bundleHash`, `merkleProofJson` and `otsProofBase64`. No video, credentials or private company records are uploaded.
+
+The browser treats this response as untrusted evidence. It checks the event hash against the signed XRP manifest, reapplies the Merkle branch, executes the OpenTimestamps operations, and checks the resulting commitment against a Bitcoin header with two-provider block-hash agreement and proof of work. A missing or unavailable proof is never displayed as verified. The video and a complete proof JSON can also be verified locally without the FleetFusion proof service.
+
+Deploy the public proof endpoint before enabling the HTTPS registry entry. A batch `.ots` timestamps the batch root; use the complete event proof JSON to link an individual video to that timestamp.

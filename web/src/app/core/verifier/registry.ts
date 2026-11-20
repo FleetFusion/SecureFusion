@@ -40,8 +40,8 @@ export interface RegistryEntry {
    *   - "xrpl-sf1ots": SF1.ots upgrade transaction on XRPL (default,
    *     fully trustless).
    *   - "https": OTS proof + Merkle branch via documented HTTPS URL
-   *     (see `bitcoinProofUrlTemplate`). Crypto verify still local;
-   *     trust degrades to "trust the issuer's HTTPS endpoint".
+   *     (see `bitcoinProofUrlTemplate`). Cryptographic verification remains local;
+   *     retrieval depends on availability of the issuer's proof endpoint.
    *   - "none": Tier-3 not provided. Tier-1+2 still apply.
    */
   readonly bitcoinProofMode: BitcoinProofMode;
